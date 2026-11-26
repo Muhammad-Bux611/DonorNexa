@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: donornexa
+    runtime: docker
+    plan: free
+    region: singapore
+    buildCommand: ""
+    dockerfilePath: Dockerfile
+    healthCheckPath: /login
+    envVars:
+      - key: DB_URL
+        value: "jdbc:mysql://gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/donornexa_db?sslMode=VERIFY_IDENTITY&enabledTLSProtocols=TLSv1.2,TLSv1.3&zeroDateTimeBehavior=CONVERT_TO_NULL"
+      - key: DB_USERNAME
+        value: "dgRgb3773NXWrHA.root"
+      - key: DB_PASSWORD
+        value: "ou0CEN9dGKQPwX6F"
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: "update"
+      - key: PORT
+        value: "8080"

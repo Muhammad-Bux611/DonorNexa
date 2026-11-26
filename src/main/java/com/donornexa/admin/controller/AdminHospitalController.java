@@ -111,7 +111,7 @@ public class AdminHospitalController {
                                       RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    bindingResult.getAllErrors().getFirst().getDefaultMessage());
+                    bindingResult.getAllErrors().get(0).getDefaultMessage());
             return "redirect:/admin/hospitals/" + id;
         }
 
@@ -138,7 +138,7 @@ public class AdminHospitalController {
                                       RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    bindingResult.getAllErrors().getFirst().getDefaultMessage());
+                    bindingResult.getAllErrors().get(0).getDefaultMessage());
             return "redirect:/admin/hospitals/" + id;
         }
 

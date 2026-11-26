@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Hub | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('verification')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('verification')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Verification Hub', 'Credential Verification & Review Queues')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Verification Central Hub</h2>
+                    <p class="text-muted mb-0">Triage pending donor identities and hospital healthcare licenses across Pakistan.</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">← Back to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Pending Review Queues -->
+            <h4 class="fw-bold mb-3 text-dark">Priority Pending Queues</h4>
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100 p-4 border-start border-warning border-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">Pending Volunteer Donors</h5>
+                            <span class="badge bg-warning text-dark fs-6" th:text="${pendingDonors}">0</span>
+                        </div>
+                        <p class="text-muted small">
+                            Newly registered donors awaiting verification of eligibility criteria, medical disclosures, and contact credentials.
+                        </p>
+                        <a th:href="@{/admin/donors(verificationStatus='PENDING')}" class="btn btn-warning btn-sm fw-bold mt-auto align-self-start">
+                            Review Pending Donors Queue →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100 p-4 border-start border-warning border-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">Pending Healthcare Facilities</h5>
+                            <span class="badge bg-warning text-dark fs-6" th:text="${pendingHospitals}">0</span>
+                        </div>
+                        <p class="text-muted small">
+                            Hospitals and blood transfusion centers awaiting verification of provincial health commission registration numbers.
+                        </p>
+                        <a th:href="@{/admin/hospitals(verificationStatus='PENDING')}" class="btn btn-warning btn-sm fw-bold mt-auto align-self-start">
+                            Review Pending Hospitals Queue →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verified Queues -->
+            <h4 class="fw-bold mb-3 text-dark">Verified &amp; Authorized Communities</h4>
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100 p-4 border-start border-success border-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">Verified Blood Donors</h5>
+                            <span class="badge bg-success fs-6" th:text="${verifiedDonors}">0</span>
+                        </div>
+                        <p class="text-muted small">
+                            Active volunteer pool confirmed safe, eligible, and ready for emergency emergency blood matching.
+                        </p>
+                        <a th:href="@{/admin/donors(verificationStatus='VERIFIED')}" class="btn btn-outline-success btn-sm fw-semibold mt-auto align-self-start">
+                            Browse Verified Donors →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100 p-4 border-start border-success border-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">Verified Hospitals</h5>
+                            <span class="badge bg-success fs-6" th:text="${verifiedHospitals}">0</span>
+                        </div>
+                        <p class="text-muted small">
+                            Accredited medical centers authorized to issue emergency blood requests and accept donations.
+                        </p>
+                        <a th:href="@{/admin/hospitals(verificationStatus='VERIFIED')}" class="btn btn-outline-success btn-sm fw-semibold mt-auto align-self-start">
+                            Browse Verified Hospitals →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rejected Applications -->
+            <h4 class="fw-bold mb-3 text-dark">Denied Applications</h4>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100 p-4 border-start border-danger border-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">Rejected Donors</h5>
+                            <span class="badge bg-danger fs-6" th:text="${rejectedDonors}">0</span>
+                        </div>
+                        <p class="text-muted small">
+                            Donors denied verification due to medical deferral, age limits, or invalid documentation.
+                        </p>
+                        <a th:href="@{/admin/donors(verificationStatus='REJECTED')}" class="btn btn-outline-danger btn-sm fw-semibold mt-auto align-self-start">
+                            View Rejected Donors →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100 p-4 border-start border-danger border-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">Rejected Hospitals</h5>
+                            <span class="badge bg-danger fs-6" th:text="${rejectedHospitals}">0</span>
+                        </div>
+                        <p class="text-muted small">
+                            Hospital applications denied due to unverified healthcare commission credentials.
+                        </p>
+                        <a th:href="@{/admin/hospitals(verificationStatus='REJECTED')}" class="btn btn-outline-danger btn-sm fw-semibold mt-auto align-self-start">
+                            View Rejected Hospitals →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

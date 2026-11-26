@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About DonorNexa | Intelligent Emergency Blood-Donor Coordination</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark dn-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">DonorNexa</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#aboutNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="aboutNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active text-white fw-semibold" th:href="@{/about}">About &amp; How It Works</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/emergencies}">Emergency Board</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/login/donor}">Donor Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/login/hospital}">Hospital Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-light btn-sm dn-register fw-semibold" th:href="@{/register/donor}">Become a Donor</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="container py-5 flex-grow-1">
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <span class="badge bg-danger px-3 py-2 rounded-pill text-uppercase fw-semibold mb-3">About The Platform</span>
+            <h1 class="display-5 fw-bold text-dark">Connecting Donors. Bridging Lives. Saving Hope.</h1>
+            <p class="lead text-muted">
+                DonorNexa is a smart, enterprise-grade emergency blood-donor coordination platform designed to eliminate fatal delays during critical transfusions across Pakistan.
+            </p>
+        </div>
+    </div>
+
+    <!-- Core Pillars -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center rounded-4">
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.75rem;">
+                    🏥
+                </div>
+                <h4 class="fw-bold">Verified Hospitals</h4>
+                <p class="text-muted small">
+                    Every healthcare facility undergoes strict administrative license verification with binary header validation before issuing emergency blood requests.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center rounded-4">
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.75rem;">
+                    🩸
+                </div>
+                <h4 class="fw-bold">Clinical Eligibility</h4>
+                <p class="text-muted small">
+                    Automated clinical screening guarantees donor safety by strictly checking Age (18–60), Weight (≥50 kg), Active Availability, and a 90-Day Cooldown.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center rounded-4">
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.75rem;">
+                    ⚡
+                </div>
+                <h4 class="fw-bold">Intelligent Ranking</h4>
+                <p class="text-muted small">
+                    Red blood cell compatibility mapping combines with geographic proximity, cooldown interval freshness, and urgency to rank the most optimal candidates.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Flow -->
+    <section class="card border-0 shadow-sm p-4 p-md-5 rounded-4 mb-5 bg-white">
+        <h2 class="fw-bold text-center mb-4">How DonorNexa Works</h2>
+        <div class="row g-4 align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="badge bg-danger rounded-circle p-3 mb-2 fs-5">1</div>
+                <h5 class="fw-bold">Emergency Issued</h5>
+                <p class="text-muted small">A verified hospital creates an urgent blood request with required units and blood group.</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="badge bg-danger rounded-circle p-3 mb-2 fs-5">2</div>
+                <h5 class="fw-bold">Candidate Ranking</h5>
+                <p class="text-muted small">DonorNexa scores eligible voluntary donors based on proximity and ABO/Rh compatibility.</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="badge bg-danger rounded-circle p-3 mb-2 fs-5">3</div>
+                <h5 class="fw-bold">Secure Coordination</h5>
+                <p class="text-muted small">Matched donors receive instant alerts. Two-way communication coordinates arrival time.</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="badge bg-danger rounded-circle p-3 mb-2 fs-5">4</div>
+                <h5 class="fw-bold">Donation &amp; Badges</h5>
+                <p class="text-muted small">Upon confirmation, the hospital inventory updates, and donors earn milestone badges.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compatibility Guide -->
+    <section class="card border-0 shadow-sm p-4 p-md-5 rounded-4 bg-white">
+        <h2 class="fw-bold text-center mb-3">Red Blood Cell Compatibility Matrix</h2>
+        <p class="text-center text-muted mb-4">Centralized ABO &amp; Rh factor medical compatibility rules implemented across DonorNexa:</p>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover text-center align-middle">
+                <thead class="table-danger">
+                    <tr>
+                        <th>Recipient Blood Group</th>
+                        <th>Compatible Donor Groups</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>A+</strong></td><td>A+, A-, O+, O-</td></tr>
+                    <tr><td><strong>A-</strong></td><td>A-, O-</td></tr>
+                    <tr><td><strong>B+</strong></td><td>B+, B-, O+, O-</td></tr>
+                    <tr><td><strong>B-</strong></td><td>B-, O-</td></tr>
+                    <tr><td><strong>AB+</strong> (Universal Recipient)</td><td>All Blood Groups (A+, A-, B+, B-, AB+, AB-, O+, O-)</td></tr>
+                    <tr><td><strong>AB-</strong></td><td>AB-, A-, B-, O-</td></tr>
+                    <tr><td><strong>O+</strong></td><td>O+, O-</td></tr>
+                    <tr><td><strong>O-</strong> (Universal Donor)</td><td>O- only</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4 mt-auto">
+    <div class="container text-center">
+        <p class="mb-1 fw-semibold">DonorNexa &copy; 2026. All rights reserved.</p>
+        <p class="small text-white-50 mb-0">Smart Emergency Blood-Donor Coordination Portal | Web Engineering CEP</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Reports &amp; Analytics | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('reports')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Hospital Reports &amp; Analytics', 'Facility Operational Intelligence')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Page Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Hospital Clinical &amp; Operational Reports</h2>
+                    <p class="text-muted mb-0">
+                        Institutional data intelligence, blood request fulfillment tracking, matched donor engagement, and donation yields.
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-danger btn-sm dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown">
+                            Export CSV
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                            <li>
+                                <a class="dropdown-item small" th:href="@{/hospital/reports/export(reportType='requests', bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">
+                                    Export Blood Requests (CSV)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item small" th:href="@{/hospital/reports/export(reportType='matches', bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">
+                                    Export Matched Donors (CSV)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item small" th:href="@{/hospital/reports/export(reportType='donations', bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">
+                                    Export Donations Ledger (CSV)
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <a th:href="@{/hospital/dashboard}" class="btn btn-outline-secondary btn-sm">
+                        &larr; Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- KPI Cards Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Requests Raised</div>
+                        <div class="stat-value text-dark" th:text="${summary.totalRequests}">0</div>
+                        <small class="text-muted">
+                            <span class="text-success fw-bold" th:text="${summary.fulfilledRequests}">0</span> fulfilled
+                            &bull; <span class="text-warning fw-bold" th:text="${summary.matchingRequests}">0</span> matching
+                        </small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Matched Donors</div>
+                        <div class="stat-value text-danger" th:text="${summary.totalMatches}">0</div>
+                        <small class="text-muted">
+                            <span class="text-success fw-bold" th:text="${summary.acceptedMatches}">0</span> accepted
+                            &bull; <span class="text-secondary fw-bold" th:text="${summary.pendingMatches}">0</span> pending
+                        </small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Donation Sessions</div>
+                        <div class="stat-value text-primary" th:text="${summary.totalDonations}">0</div>
+                        <small class="text-muted">
+                            <span class="text-success fw-bold" th:text="${summary.completedDonations}">0</span> completed
+                            &bull; <span class="text-info fw-bold" th:text="${summary.scheduledDonations}">0</span> scheduled
+                        </small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Blood Contributed</div>
+                        <div class="stat-value text-success" th:text="${summary.totalUnitsCollected} + ' Units'">0 Units</div>
+                        <small class="text-muted">Directly recorded at this facility</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activeTab == 'summary' or activeTab == null} ? 'active bg-danger text-white' : 'text-dark bg-white border'"
+                       th:href="@{/hospital/reports(tab='summary')}">
+                        Summary &amp; Charts
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activeTab == 'requests'} ? 'active bg-danger text-white' : 'text-dark bg-white border'"
+                       th:href="@{/hospital/reports(tab='requests')}">
+                        Blood Requests Report
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activeTab == 'matches'} ? 'active bg-danger text-white' : 'text-dark bg-white border'"
+                       th:href="@{/hospital/reports(tab='matches')}">
+                        Matched Donors Report
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activeTab == 'donations'} ? 'active bg-danger text-white' : 'text-dark bg-white border'"
+                       th:href="@{/hospital/reports(tab='donations')}">
+                        Donations Ledger Report
+                    </a>
+                </li>
+            </ul>
+
+            <!-- ============================================================== -->
+            <!-- TAB 1: SUMMARY & VISUALIZATIONS -->
+            <!-- ============================================================== -->
+            <div th:if="${activeTab == 'summary' or activeTab == null}">
+                <div class="row g-4 mb-4">
+                    <!-- Request Status Doughnut Chart -->
+                    <div class="col-lg-5">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h6 class="fw-bold mb-0 text-dark">Request Lifecycle Distribution</h6>
+                            </div>
+                            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                                <div style="width: 100%; max-width: 320px; height: 260px;">
+                                    <canvas id="requestStatusChart"></canvas>
+                                </div>
+                                <div id="emptyRequestStatus" class="text-center text-muted small py-4 d-none">
+                                    No blood requests created yet to chart.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Requests Trend Chart -->
+                    <div class="col-lg-7">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h6 class="fw-bold mb-0 text-dark">Monthly Blood Requests Activity (Past 6 Months)</h6>
+                            </div>
+                            <div class="card-body">
+                                <div style="width: 100%; height: 260px;">
+                                    <canvas id="monthlyRequestsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Donations Bar Chart -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="fw-bold mb-0 text-dark">Monthly Recorded Blood Donations (Past 6 Months)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div style="width: 100%; height: 250px;">
+                            <canvas id="monthlyDonationsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 2: BLOOD REQUESTS REPORT -->
+            <!-- ============================================================== -->
+            <div th:if="${activeTab == 'requests'}">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-3">
+                        <form method="get" th:action="@{/hospital/reports}" class="row g-2 align-items-end">
+                            <input type="hidden" name="tab" value="requests">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Status</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="">All Statuses</option>
+                                    <option th:each="st : ${requestStatuses}" th:value="${st.name()}" th:text="${st.name()}"
+                                            th:selected="${selectedStatus != null and selectedStatus.name() == st.name()}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Blood Group</label>
+                                <select name="bloodGroup" class="form-select form-select-sm">
+                                    <option value="">All Groups</option>
+                                    <option th:each="bg : ${bloodGroups}" th:value="${bg.name()}" th:text="${bg.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}"
+                                            th:selected="${selectedBloodGroup != null and selectedBloodGroup == bg}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold text-muted">From Date</label>
+                                <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold text-muted">To Date</label>
+                                <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}">
+                            </div>
+                            <div class="col-md-2 d-flex gap-2">
+                                <button type="submit" class="btn btn-danger btn-sm w-100 fw-semibold">Filter</button>
+                                <a th:href="@{/hospital/reports(tab='requests')}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Blood Group</th>
+                                        <th>Units</th>
+                                        <th>Urgency</th>
+                                        <th>Status</th>
+                                        <th>Required By</th>
+                                        <th>Created At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(requestsPage.content)}">
+                                        <td colspan="7" class="text-center py-4 text-muted">No blood requests matched the filter criteria.</td>
+                                    </tr>
+                                    <tr th:each="r : ${requestsPage.content}">
+                                        <td class="fw-bold">#<span th:text="${r.id}">1</span></td>
+                                        <td><span class="badge bg-danger fs-6" th:text="${r.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span></td>
+                                        <td th:text="${r.unitsFulfilled} + ' / ' + ${r.unitsRequired} + ' Units'">0/1</td>
+                                        <td><span class="badge bg-secondary" th:text="${r.urgency}">NORMAL</span></td>
+                                        <td><span class="badge bg-success" th:text="${r.status}">PENDING</span></td>
+                                        <td class="small text-muted" th:text="${#temporals.format(r.requiredBy, 'dd MMM yyyy, HH:mm')}">Date</td>
+                                        <td class="small text-muted" th:text="${#temporals.format(r.createdAt, 'dd MMM yyyy, HH:mm')}">Date</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Pagination -->
+                    <div th:if="${requestsPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                        <small class="text-muted">Page <span th:text="${requestsPage.number + 1}">1</span> of <span th:text="${requestsPage.totalPages}">1</span></small>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${requestsPage.first} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/hospital/reports(tab='requests', page=${requestsPage.number - 1}, status=${selectedStatus}, bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:classappend="${requestsPage.last} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/hospital/reports(tab='requests', page=${requestsPage.number + 1}, status=${selectedStatus}, bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">Next</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 3: MATCHED DONORS REPORT -->
+            <!-- ============================================================== -->
+            <div th:if="${activeTab == 'matches'}">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-3">
+                        <form method="get" th:action="@{/hospital/reports}" class="row g-2 align-items-end">
+                            <input type="hidden" name="tab" value="matches">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Match Status</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="">All Statuses</option>
+                                    <option th:each="st : ${matchStatuses}" th:value="${st.name()}" th:text="${st.name()}"
+                                            th:selected="${selectedStatus != null and selectedStatus.name() == st.name()}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Blood Group</label>
+                                <select name="bloodGroup" class="form-select form-select-sm">
+                                    <option value="">All Groups</option>
+                                    <option th:each="bg : ${bloodGroups}" th:value="${bg.name()}" th:text="${bg.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}"
+                                            th:selected="${selectedBloodGroup != null and selectedBloodGroup == bg}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold text-muted">From Date</label>
+                                <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold text-muted">To Date</label>
+                                <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}">
+                            </div>
+                            <div class="col-md-2 d-flex gap-2">
+                                <button type="submit" class="btn btn-danger btn-sm w-100 fw-semibold">Filter</button>
+                                <a th:href="@{/hospital/reports(tab='matches')}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Match ID</th>
+                                        <th>Request</th>
+                                        <th>Blood Group</th>
+                                        <th>Donor Masked Name</th>
+                                        <th>City</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                        <th>Matched At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(matchesPage.content)}">
+                                        <td colspan="8" class="text-center py-4 text-muted">No donor match records found for this criteria.</td>
+                                    </tr>
+                                    <tr th:each="m : ${matchesPage.content}">
+                                        <td class="fw-bold">#<span th:text="${m.id}">1</span></td>
+                                        <td><a th:href="@{/hospital/blood-requests/{id}(id=${m.bloodRequest.id})}" class="text-danger fw-semibold">Req #<span th:text="${m.bloodRequest.id}">1</span></a></td>
+                                        <td><span class="badge bg-danger fs-6" th:text="${m.bloodRequest.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span></td>
+                                        <td class="fw-semibold text-dark" th:text="${m.donor.user.fullName != null ? #strings.substring(m.donor.user.fullName, 0, 1) + '***' : 'Donor'}">Donor</td>
+                                        <td th:text="${m.donor.city.name}">City</td>
+                                        <td><span class="badge bg-light text-dark border font-monospace" th:text="${m.matchScore} + '%'">90%</span></td>
+                                        <td>
+                                            <span th:if="${m.matchStatus.name() == 'ACCEPTED'}" class="badge bg-success">Accepted</span>
+                                            <span th:if="${m.matchStatus.name() == 'REJECTED'}" class="badge bg-danger">Rejected</span>
+                                            <span th:if="${m.matchStatus.name() == 'PENDING'}" class="badge bg-primary">Pending</span>
+                                            <span th:if="${m.matchStatus.name() == 'CANCELLED'}" class="badge bg-secondary">Cancelled</span>
+                                            <span th:if="${m.matchStatus.name() == 'COMPLETED'}" class="badge bg-info text-dark">Completed</span>
+                                        </td>
+                                        <td class="small text-muted" th:text="${#temporals.format(m.matchedAt, 'dd MMM yyyy, HH:mm')}">Date</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Pagination -->
+                    <div th:if="${matchesPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                        <small class="text-muted">Page <span th:text="${matchesPage.number + 1}">1</span> of <span th:text="${matchesPage.totalPages}">1</span></small>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${matchesPage.first} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/hospital/reports(tab='matches', page=${matchesPage.number - 1}, status=${selectedStatus}, bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:classappend="${matchesPage.last} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/hospital/reports(tab='matches', page=${matchesPage.number + 1}, status=${selectedStatus}, bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">Next</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 4: COMPLETED DONATIONS REPORT -->
+            <!-- ============================================================== -->
+            <div th:if="${activeTab == 'donations'}">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-3">
+                        <form method="get" th:action="@{/hospital/reports}" class="row g-2 align-items-end">
+                            <input type="hidden" name="tab" value="donations">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Donation Status</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="">All Statuses</option>
+                                    <option th:each="st : ${donationStatuses}" th:value="${st.name()}" th:text="${st.name()}"
+                                            th:selected="${selectedStatus != null and selectedStatus.name() == st.name()}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Blood Group</label>
+                                <select name="bloodGroup" class="form-select form-select-sm">
+                                    <option value="">All Groups</option>
+                                    <option th:each="bg : ${bloodGroups}" th:value="${bg.name()}" th:text="${bg.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}"
+                                            th:selected="${selectedBloodGroup != null and selectedBloodGroup == bg}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold text-muted">From Date</label>
+                                <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold text-muted">To Date</label>
+                                <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}">
+                            </div>
+                            <div class="col-md-2 d-flex gap-2">
+                                <button type="submit" class="btn btn-danger btn-sm w-100 fw-semibold">Filter</button>
+                                <a th:href="@{/hospital/reports(tab='donations')}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Donor Name</th>
+                                        <th>Blood Group</th>
+                                        <th>Units Donated</th>
+                                        <th>Donation Date</th>
+                                        <th>Status</th>
+                                        <th>Inventory Added</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(donationsPage.content)}">
+                                        <td colspan="7" class="text-center py-4 text-muted">No donation records match the filter criteria.</td>
+                                    </tr>
+                                    <tr th:each="d : ${donationsPage.content}">
+                                        <td class="fw-bold">#<span th:text="${d.id}">1</span></td>
+                                        <td class="fw-semibold text-dark" th:text="${d.donor.user.fullName}">Donor Name</td>
+                                        <td><span class="badge bg-danger fs-6" th:text="${d.donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span></td>
+                                        <td class="fw-bold text-success" th:text="${d.unitsDonated} + ' Unit(s)'">1 Unit</td>
+                                        <td class="small text-muted" th:text="${#temporals.format(d.donationDate, 'dd MMM yyyy, HH:mm')}">Date</td>
+                                        <td>
+                                            <span th:if="${d.donationStatus.name() == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                            <span th:if="${d.donationStatus.name() == 'SCHEDULED'}" class="badge bg-info text-dark">Scheduled</span>
+                                            <span th:if="${d.donationStatus.name() == 'CANCELLED'}" class="badge bg-secondary">Cancelled</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${d.inventoryAdded}" class="badge bg-success-subtle text-success">Added</span>
+                                            <span th:unless="${d.inventoryAdded}" class="badge bg-secondary-subtle text-muted">Not Added</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Pagination -->
+                    <div th:if="${donationsPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                        <small class="text-muted">Page <span th:text="${donationsPage.number + 1}">1</span> of <span th:text="${donationsPage.totalPages}">1</span></small>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${donationsPage.first} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/hospital/reports(tab='donations', page=${donationsPage.number - 1}, status=${selectedStatus}, bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:classappend="${donationsPage.last} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/hospital/reports(tab='donations', page=${donationsPage.number + 1}, status=${selectedStatus}, bloodGroup=${selectedBloodGroup}, startDate=${startDate}, endDate=${endDate})}">Next</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; Connecting Donors. Bridging Lives. Saving Hope. &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const statusCanvas = document.getElementById("requestStatusChart");
+    if (!statusCanvas) return;
+
+    fetch("/hospital/reports/chart-data")
+        .then(response => response.json())
+        .then(data => {
+            // 1. Request Status Chart
+            const statusData = data.requestStatusDistribution;
+            const totalStatus = statusData.data.reduce((a, b) => a + b, 0);
+            if (totalStatus === 0) {
+                document.getElementById("emptyRequestStatus").classList.remove("d-none");
+                statusCanvas.classList.add("d-none");
+            } else {
+                new Chart(statusCanvas, {
+                    type: "doughnut",
+                    data: {
+                        labels: statusData.labels,
+                        datasets: [{
+                            data: statusData.data,
+                            backgroundColor: ["#f59e0b", "#3b82f6", "#10b981", "#6b7280"]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: "bottom" } }
+                    }
+                });
+            }
+
+            // 2. Monthly Requests Chart
+            const monthlyReq = data.monthlyRequests;
+            const reqCanvas = document.getElementById("monthlyRequestsChart");
+            if (reqCanvas) {
+                new Chart(reqCanvas, {
+                    type: "bar",
+                    data: {
+                        labels: monthlyReq.labels,
+                        datasets: [{
+                            label: "Blood Requests Raised",
+                            data: monthlyReq.data,
+                            backgroundColor: "#dc2626",
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // 3. Monthly Donations Chart
+            const monthlyDon = data.monthlyDonations;
+            const donCanvas = document.getElementById("monthlyDonationsChart");
+            if (donCanvas) {
+                new Chart(donCanvas, {
+                    type: "line",
+                    data: {
+                        labels: monthlyDon.labels,
+                        datasets: [{
+                            label: "Completed Donations",
+                            data: monthlyDon.data,
+                            borderColor: "#b91c1c",
+                            backgroundColor: "rgba(185, 28, 28, 0.1)",
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: "#dc2626"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    }
+                });
+            }
+        })
+        .catch(err => console.error("Failed to load chart data:", err));
+});
+</script>
+</body>
+</html>

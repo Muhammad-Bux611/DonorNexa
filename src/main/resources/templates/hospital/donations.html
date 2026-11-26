@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Management | DonorNexa Hospital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('donations')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('donations')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Donation Management', 'Hospital Clinical Blood Intake Ledger')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}">Operation successful.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}">An error occurred.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Page Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom gap-3">
+                <div>
+                    <h2 class="h3 fw-bold mb-1">Clinical Donation Ledger</h2>
+                    <p class="text-muted mb-0 small">Record, monitor, and transition voluntary blood donation sessions for your healthcare facility.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a th:href="@{/hospital/donations/record}" class="btn btn-dn-primary">
+                        Record New Donation
+                    </a>
+                    <a th:href="@{/hospital/dashboard}" class="btn btn-outline-secondary">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-3">
+                    <form th:action="@{/hospital/donations}" method="get" class="row g-2 align-items-center">
+                        <div class="col-md-5">
+                            <input type="text" name="query" th:value="${query}" class="form-control"
+                                   placeholder="Search donor name, email or phone...">
+                        </div>
+                        <div class="col-md-4">
+                            <select name="status" class="form-select">
+                                <option value="">All Donation Statuses</option>
+                                <option th:each="st : ${statuses}"
+                                        th:value="${st}"
+                                        th:text="${st.name()}"
+                                        th:selected="${selectedStatus != null && selectedStatus == st}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-danger flex-grow-1">Apply Filter</button>
+                            <a th:href="@{/hospital/donations}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Donations Table -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Donation Records</h5>
+                    <span class="text-muted small">Total: <strong th:text="${donationPage.totalElements}">0</strong> record(s)</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Donor Name</th>
+                                    <th>Blood Group</th>
+                                    <th>Units</th>
+                                    <th>Donation Date</th>
+                                    <th>Request Ref</th>
+                                    <th>Status</th>
+                                    <th>Inventory Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${donationPage.totalElements == 0}">
+                                    <td colspan="9" class="text-center py-5 text-muted">
+                                        <h5 class="fw-bold mb-1">No Donation Records Found</h5>
+                                        <p class="small mb-3">No blood donations match your current filter parameters or have been registered yet.</p>
+                                        <a th:href="@{/hospital/donations/record}" class="btn btn-dn-primary btn-sm">Record First Donation</a>
+                                    </td>
+                                </tr>
+                                <tr th:each="d : ${donationPage.content}">
+                                    <td class="fw-semibold text-muted" th:text="'#' + ${d.id}">#1</td>
+                                    <td>
+                                        <div class="fw-bold text-dark" th:text="${d.donor.user.fullName}">Muhammad Ali</div>
+                                        <small class="text-muted" th:text="${d.donor.user.phoneNumber}">0300-1234567</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger fs-6" th:text="${d.donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+                                    </td>
+                                    <td class="fw-bold text-dark" th:text="${d.unitsDonated} + ' Unit(s)'">1 Unit(s)</td>
+                                    <td class="small" th:text="${#temporals.format(d.donationDate, 'dd MMM yyyy, hh:mm a')}">01 Jan 2026</td>
+                                    <td>
+                                        <span th:if="${d.bloodRequest != null}" class="badge bg-light text-dark border"
+                                              th:text="'Req #' + ${d.bloodRequest.id}">Req #12</span>
+                                        <span th:if="${d.bloodRequest == null}" class="badge bg-light text-muted border">Voluntary</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${d.donationStatus.name() == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                        <span th:if="${d.donationStatus.name() == 'SCHEDULED'}" class="badge bg-info text-dark">Scheduled</span>
+                                        <span th:if="${d.donationStatus.name() == 'CANCELLED'}" class="badge bg-secondary">Cancelled</span>
+                                        <span th:if="${d.donationStatus.name() == 'REJECTED'}" class="badge bg-danger">Rejected</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${d.inventoryAdded}" class="badge bg-success-subtle text-success">Logged in Inventory</span>
+                                        <span th:unless="${d.inventoryAdded}" class="badge bg-secondary-subtle text-muted">Not in Inventory</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/hospital/donations/{id}(id=${d.id})}" class="btn btn-outline-danger btn-sm">Inspect Details</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div th:if="${donationPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                    <div class="small text-muted">
+                        Page <span th:text="${donationPage.number + 1}">1</span> of <span th:text="${donationPage.totalPages}">1</span>
+                    </div>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${donationPage.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/hospital/donations(page=${donationPage.number - 1}, query=${query}, status=${selectedStatus})}">&laquo; Previous</a>
+                        </li>
+                        <li class="page-item" th:classappend="${donationPage.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/hospital/donations(page=${donationPage.number + 1}, query=${query}, status=${selectedStatus})}">Next &raquo;</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; Connecting Donors. Bridging Lives. Saving Hope. &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

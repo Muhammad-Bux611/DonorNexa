@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('audit-logs')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('audit-logs')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Security Audit Logs', 'Tamper-Evident Administrative Activity')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Security &amp; Compliance Audit Logs</h2>
+                    <p class="text-muted mb-0">Immutable records of administrative verifications, account standing updates, and clinical actions.</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">← Back to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Filter & Search Bar -->
+            <div class="filter-box mb-4">
+                <form th:action="@{/admin/audit-logs}" method="get" class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold text-muted mb-1">Search Audit Trail</label>
+                        <input type="text" name="query" class="form-control form-control-sm"
+                               placeholder="Search description, entity ID, or administrator email..."
+                               th:value="${query}">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">Action Type</label>
+                        <select name="action" class="form-select form-select-sm">
+                            <option value="">-- All Actions --</option>
+                            <option th:each="act : ${actions}"
+                                    th:value="${act.name()}"
+                                    th:text="${act.name()}"
+                                    th:selected="${selectedAction != null && selectedAction == act}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">Target Entity</label>
+                        <input type="text" name="entityName" class="form-control form-control-sm"
+                               placeholder="e.g. Donor, Hospital, User"
+                               th:value="${selectedEntity}">
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-danger btn-sm flex-grow-1">Filter</button>
+                        <a th:href="@{/admin/audit-logs}" class="btn btn-outline-secondary btn-sm" title="Reset Filters">Reset</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Audit Logs Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Action Performed</th>
+                                    <th>Target Entity</th>
+                                    <th>Entity ID</th>
+                                    <th>Description &amp; Context</th>
+                                    <th>Administrator / Actor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${logPage.totalElements == 0}">
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <div style="font-size: 2.5rem;"></div>
+                                        <h6 class="mt-2 fw-bold">No audit entries match the criteria.</h6>
+                                        <p class="small mb-0">Try clearing filters or search terms.</p>
+                                    </td>
+                                </tr>
+                                <tr th:each="entry : ${logPage.content}">
+                                    <td class="text-muted small font-monospace"
+                                        th:text="${entry.createdAt != null ? #temporals.format(entry.createdAt, 'dd MMM yyyy, HH:mm:ss') : 'N/A'}">
+                                        01 Jan 2026, 10:00:00
+                                    </td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${entry.action.name() == 'VERIFY'} ? 'bg-success' : (${entry.action.name() == 'STATUS_CHANGE'} ? 'bg-warning text-dark' : 'bg-secondary')"
+                                              th:text="${entry.action}">
+                                            VERIFY
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-dark" th:text="${entry.entityName}">Donor</span>
+                                    </td>
+                                    <td class="font-monospace text-muted small" th:text="'#' + ${entry.entityId}">#1</td>
+                                    <td>
+                                        <div class="text-dark small" th:text="${entry.description}">Log description text here.</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark small"
+                                             th:text="${entry.actor?.fullName ?: 'System Engine'}">
+                                            Admin Name
+                                        </div>
+                                        <small class="text-muted"
+                                               th:text="${entry.actor?.email ?: 'system@donornexa.internal'}">
+                                            admin@donornexa.com
+                                        </small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div th:if="${logPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                    <small class="text-muted">
+                        Page <span th:text="${logPage.number + 1}">1</span> of <span th:text="${logPage.totalPages}">1</span>
+                        (<span th:text="${logPage.totalElements}">0</span> total events)
+                    </small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${logPage.first} ? 'disabled' : ''">
+                                <a class="page-link"
+                                   th:href="@{/admin/audit-logs(page=${logPage.number - 1}, query=${query}, action=${selectedAction != null ? selectedAction.name() : ''}, entityName=${selectedEntity})}">
+                                    Previous
+                                </a>
+                            </li>
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, logPage.totalPages - 1)}"
+                                th:classappend="${i == logPage.number} ? 'active' : ''">
+                                <a class="page-link"
+                                   th:href="@{/admin/audit-logs(page=${i}, query=${query}, action=${selectedAction != null ? selectedAction.name() : ''}, entityName=${selectedEntity})}"
+                                   th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${logPage.last} ? 'disabled' : ''">
+                                <a class="page-link"
+                                   th:href="@{/admin/audit-logs(page=${logPage.number + 1}, query=${query}, action=${selectedAction != null ? selectedAction.name() : ''}, entityName=${selectedEntity})}">
+                                    Next
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Chat with ' + ${conversation.donor.user.fullName} + ' — DonorNexa'">Chat with Donor — DonorNexa</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- DonorNexa Core Theme -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Professional Messaging Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/messaging.css}">
+</head>
+<body class="bg-light">
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar Fragment -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('messages')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('messages')}"></div>
+
+    <!-- Main Content Canvas -->
+    <div class="dn-main-content">
+        <!-- Top Navigation Bar Fragment -->
+        <header th:replace="~{fragments/header :: topbar('Donor Coordination', 'Direct Messaging & Intake Scheduling')}"></header>
+
+        <main class="container-fluid px-3 px-lg-4 py-3 flex-grow-1 d-flex flex-column">
+
+            <!-- Breadcrumbs Navigation -->
+            <nav aria-label="breadcrumb" class="mb-3 d-none d-sm-block">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a th:href="@{/hospital/dashboard}" class="text-decoration-none text-danger fw-semibold"><i class="bi bi-house-door me-1"></i>Dashboard</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/hospital/messages}" class="text-decoration-none text-danger fw-semibold">Messages</a></li>
+                    <li class="breadcrumb-item active text-dark fw-bold" aria-current="page" th:text="${conversation.donor.user.fullName}">Donor Name</li>
+                </ol>
+            </nav>
+
+            <!-- Flash Alerts -->
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm py-2 px-3 mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${errorMessage}">Error occurred</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm py-2 px-3 mb-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMessage}">Success occurred</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Modern Split Chat Application Container -->
+            <div class="dn-messaging-app has-active-chat">
+
+                <!-- ========================================================= -->
+                <!-- LEFT SIDEBAR: Donor Conversation List & Search            -->
+                <!-- ========================================================= -->
+                <aside class="dn-messaging-sidebar">
+                    <div class="dn-messaging-sidebar-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                                <i class="bi bi-people-fill text-danger"></i>
+                                Donor Threads
+                            </h5>
+                            <span class="badge bg-danger rounded-pill" th:if="${unreadMessageCount != null and unreadMessageCount > 0}"
+                                  th:text="${unreadMessageCount} + ' unread'">1 unread</span>
+                        </div>
+
+                        <!-- Instant Conversation Search Bar -->
+                        <div class="dn-search-wrapper">
+                            <i class="bi bi-search dn-search-icon"></i>
+                            <input type="text" id="convSearchInput" class="dn-search-input" placeholder="Search donor name or request..." autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- Conversation Scrollable List -->
+                    <div class="dn-conversation-list" id="conversationListContainer">
+                        <!-- Empty Conversation State -->
+                        <div th:if="${#lists.isEmpty(conversations)}" class="text-center py-5 px-3">
+                            <div class="dn-empty-icon-box mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                                <i class="bi bi-chat-dots text-danger"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">No Active Threads</h6>
+                            <p class="small text-muted mb-3">When volunteer donors accept emergency blood requests, coordination threads appear here automatically.</p>
+                            <a th:href="@{/hospital/blood-requests}" class="btn btn-dn-primary btn-sm rounded-pill px-3">
+                                <i class="bi bi-plus-circle me-1"></i> View Blood Requests
+                            </a>
+                        </div>
+
+                        <!-- List Items -->
+                        <a th:each="conv : ${conversations}"
+                           th:href="@{/hospital/messages/{id}(id=${conv.id})}"
+                           class="dn-conv-item"
+                           th:classappend="${conversation.id == conv.id} ? 'active' : ''"
+                           th:attr="data-donor-name=${#strings.toLowerCase(conv.donorName)}, data-request-id=${conv.bloodRequestId}">
+
+                            <!-- Donor Initials Avatar -->
+                            <div class="dn-conv-avatar"
+                                 th:text="${#strings.substring(conv.donorName, 0, 1).toUpperCase()}">
+                                D
+                            </div>
+
+                            <!-- Conversation Details -->
+                            <div class="dn-conv-body">
+                                <div class="dn-conv-top">
+                                    <h6 class="dn-conv-title" th:text="${conv.donorName}">Donor Name</h6>
+                                    <span class="dn-conv-time"
+                                          th:text="${conv.lastMessageAt != null ? #temporals.format(conv.lastMessageAt, 'HH:mm') : ''}">12:30</span>
+                                </div>
+                                <p class="dn-conv-preview"
+                                   th:text="${conv.lastMessagePreview != null and !conv.lastMessagePreview.isBlank() ? conv.lastMessagePreview : 'No messages yet in this thread.'}">
+                                    Last message preview...
+                                </p>
+                                <div class="dn-conv-pills">
+                                    <span class="dn-conv-badge-blood">
+                                        Req #<span th:text="${conv.bloodRequestId}">1</span> &bull;
+                                        <span th:text="${conv.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+                                    </span>
+                                    <span th:if="${conv.unreadCount > 0 and conv.id != conversation.id}" class="dn-conv-badge-unread" th:text="${conv.unreadCount}">1</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </aside>
+
+                <!-- ========================================================= -->
+                <!-- RIGHT PANEL: Active Chat Canvas                           -->
+                <!-- ========================================================= -->
+                <section class="dn-messaging-main">
+
+                    <div class="d-flex flex-column h-100">
+
+                        <!-- Chat Header Bar -->
+                        <div class="dn-chat-header">
+                            <div class="dn-chat-header-user">
+                                <!-- Mobile Back Button to return to Sidebar -->
+                                <a th:href="@{/hospital/messages}" class="btn btn-sm btn-outline-secondary d-md-none me-1" title="Back to donor threads">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+
+                                <div class="dn-conv-avatar" style="width: 44px; height: 44px; font-size: 1.1rem;"
+                                     th:text="${#strings.substring(conversation.donor.user.fullName, 0, 1).toUpperCase()}">
+                                    D
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h6 class="dn-chat-header-title" th:text="${conversation.donor.user.fullName}">Donor Name</h6>
+                                    <div class="dn-chat-header-meta">
+                                        <span>Blood Request #<strong th:text="${conversation.bloodRequest.id}">1</strong></span>
+                                        <span class="badge bg-danger rounded-pill"
+                                              th:text="${conversation.donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+                                        <span class="badge bg-secondary rounded-pill" th:text="${conversation.bloodRequest.urgency}">CRITICAL</span>
+                                        <span th:text="${conversation.donor.city.name} + ', ' + ${conversation.donor.province.name}">Lahore, Punjab</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <a th:if="${conversation.donor.user.phoneNumber != null and !conversation.donor.user.phoneNumber.isBlank()}"
+                                   th:href="'tel:' + ${conversation.donor.user.phoneNumber}"
+                                   class="btn btn-outline-success btn-sm rounded-pill d-none d-sm-inline-flex align-items-center gap-1"
+                                   title="Call Donor Phone">
+                                    <i class="bi bi-telephone-fill"></i>
+                                    <span th:text="${conversation.donor.user.phoneNumber}">0300-1234567</span>
+                                </a>
+                                <a th:href="@{/hospital/blood-requests/{id}(id=${conversation.bloodRequest.id})}"
+                                   class="btn btn-outline-danger btn-sm rounded-pill d-none d-md-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-file-earmark-medical"></i> Request #<span th:text="${conversation.bloodRequest.id}">1</span>
+                                </a>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill small"
+                                      th:text="${conversation.status}">ACTIVE</span>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages Scroll Area -->
+                        <div id="chatMessages" class="dn-chat-history">
+                            <!-- Empty Thread Placeholder -->
+                            <div th:if="${#lists.isEmpty(messages)}" class="text-center py-5 text-muted empty-chat-msg">
+                                <div class="dn-empty-icon-box mx-auto mb-2" style="width: 60px; height: 60px; font-size: 1.6rem;">
+                                    <i class="bi bi-chat-heart text-danger"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark">Donor Coordination Channel Ready</h6>
+                                <p class="small text-muted mx-auto" style="max-width: 400px;">
+                                    Send instructions to the donor regarding arrival time, laboratory blood bank floor, and donation preparation.
+                                </p>
+                            </div>
+
+                            <!-- Message Bubbles Stream -->
+                            <div th:each="msg : ${messages}"
+                                 th:class="'dn-msg-row ' + (${msg.senderRole == 'ADMIN'} ? 'admin-msg' : (${msg.isSender} ? 'sent' : 'received'))"
+                                 th:attr="data-msg-id=${msg.id}">
+
+                                <div th:if="${!msg.isSender and msg.senderRole != 'ADMIN'}" class="dn-msg-sender-label" th:text="${msg.senderName}">
+                                    Volunteer Donor
+                                </div>
+                                <div th:if="${msg.senderRole == 'ADMIN'}" class="dn-msg-sender-label text-warning-emphasis">
+                                    <i class="bi bi-shield-check me-1"></i> Platform Administrator (<span th:text="${msg.senderName}">Admin</span>)
+                                </div>
+
+                                <div class="dn-msg-bubble">
+                                    <div th:text="${msg.content}">Message text here</div>
+                                    <div class="dn-msg-time">
+                                        <span th:text="${#temporals.format(msg.sentAt, 'dd MMM, HH:mm')}">14:30</span>
+                                        <i th:if="${msg.isSender}" class="bi bi-check2 ms-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Footer / Message Input -->
+                        <div class="dn-chat-footer">
+                            <form id="chatForm" th:action="@{/hospital/messages/{id}(id=${conversation.id})}" method="post" class="dn-chat-form">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <input type="text"
+                                       id="messageInput"
+                                       name="content"
+                                       class="dn-chat-input"
+                                       placeholder="Type instructions or response to the donor..."
+                                       maxlength="2000"
+                                       required
+                                       autocomplete="off">
+                                <button type="submit" id="sendBtn" class="btn btn-dn-primary dn-chat-send-btn">
+                                    <i class="bi bi-send-fill"></i>
+                                    <span class="d-none d-sm-inline">Send</span>
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </section>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; Connecting Donors. Bridging Lives. Saving Hope. &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Live Messaging & Search Client Script -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+    // Instant Client-side Search for Conversations
+    const convSearchInput = document.getElementById('convSearchInput');
+    if (convSearchInput) {
+        convSearchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.dn-conv-item');
+            items.forEach(item => {
+                const donor = item.getAttribute('data-donor-name') || '';
+                const reqId = item.getAttribute('data-request-id') || '';
+                const text = item.innerText.toLowerCase();
+                if (donor.includes(query) || reqId.includes(query) || text.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    const conversationId = /*[[${conversation.id}]]*/ null;
+    const currentEmail = /*[[${userEmail}]]*/ '';
+    const csrfToken = /*[[${_csrf != null ? _csrf.token : ''}]]*/ '';
+    const csrfHeader = /*[[${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}]]*/ 'X-CSRF-TOKEN';
+
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function scrollToBottom() {
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+    scrollToBottom();
+
+    // AJAX Message Submission
+    if (chatForm && conversationId) {
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const content = messageInput.value.trim();
+            if (!content) return;
+
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            fetch('/hospital/messages/' + conversationId + '/send-ajax', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({ content: content })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server returned ' + response.status);
+                }
+                return response.json();
+            })
+            .then(msg => {
+                messageInput.value = '';
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                messageInput.focus();
+
+                const emptyMsg = document.querySelector('.empty-chat-msg');
+                if (emptyMsg) emptyMsg.remove();
+
+                appendMessage(msg, true);
+                scrollToBottom();
+            })
+            .catch(err => {
+                console.warn('AJAX submit error, falling back to form submit:', err);
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                chatForm.submit();
+            });
+        });
+
+        // 3-Second Background History Polling
+        setInterval(function() {
+            fetch('/hospital/messages/' + conversationId + '/history', {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(r => r.ok ? r.json() : [])
+            .then(messages => {
+                if (!messages || messages.length === 0) return;
+                let added = false;
+                messages.forEach(m => {
+                    if (!document.querySelector('[data-msg-id="' + m.id + '"]')) {
+                        const emptyMsg = document.querySelector('.empty-chat-msg');
+                        if (emptyMsg) emptyMsg.remove();
+
+                        const isSender = (m.isSender !== undefined) ? m.isSender : m.sender;
+                        appendMessage(m, isSender);
+                        added = true;
+                    }
+                });
+                if (added) scrollToBottom();
+            })
+            .catch(err => console.debug('Polling check:', err));
+        }, 3000);
+    }
+
+    function appendMessage(m, isSender) {
+        const isAdmin = m.senderRole === 'ADMIN';
+        const row = document.createElement('div');
+        row.className = 'dn-msg-row ' + (isAdmin ? 'admin-msg' : (isSender ? 'sent' : 'received'));
+        row.setAttribute('data-msg-id', m.id);
+
+        let labelHtml = '';
+        if (!isSender && !isAdmin) {
+            labelHtml = '<div class="dn-msg-sender-label">' + escapeHtml(m.senderName) + '</div>';
+        } else if (isAdmin) {
+            labelHtml = '<div class="dn-msg-sender-label text-warning-emphasis"><i class="bi bi-shield-check me-1"></i> Platform Administrator (' + escapeHtml(m.senderName) + ')</div>';
+        }
+
+        const dateStr = formatDateTime(m.sentAt);
+
+        row.innerHTML = labelHtml +
+            '<div class="dn-msg-bubble">' +
+                '<div>' + escapeHtml(m.content) + '</div>' +
+                '<div class="dn-msg-time">' +
+                    '<span>' + dateStr + '</span>' +
+                    (isSender ? '<i class="bi bi-check2 ms-1"></i>' : '') +
+                '</div>' +
+            '</div>';
+
+        chatMessages.appendChild(row);
+    }
+
+    function formatDateTime(isoStr) {
+        if (!isoStr) return '';
+        try {
+            const d = new Date(isoStr);
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const day = String(d.getDate()).padStart(2, '0');
+            const mon = months[d.getMonth()];
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            return `${day} ${mon}, ${hh}:${mm}`;
+        } catch (e) {
+            return isoStr;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;')
+                  .replace(/'/g, '&#039;');
+    }
+/*]]>*/
+</script>
+</body>
+</html>

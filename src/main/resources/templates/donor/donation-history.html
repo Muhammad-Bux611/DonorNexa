@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation History | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('donations')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('donations')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Donation Ledger', 'Historical Records & Verification')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                <div>
+                    <h2 class="h3 fw-bold mb-1">Donation History</h2>
+                    <p class="text-muted mb-0 small">Verified historical record of your blood donations across partner hospitals.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="blood-group-badge" th:text="${donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+                    <a th:href="@{/donor/dashboard}" class="btn btn-outline-secondary">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(donations)}" class="profile-card text-center py-5 my-3">
+                <div class="fs-1 mb-2"></div>
+                <h4 class="fw-bold mb-2">No Donation Records Found</h4>
+                <p class="text-muted mx-auto" style="max-width: 520px;">
+                    You have not participated in any recorded blood donations yet. When you complete a donation at any verified partner hospital, the hospital administration will record the units and event details here.
+                </p>
+                <div class="mt-3">
+                    <a th:href="@{/donor/availability}" class="btn btn-dn-primary me-2">Check Availability Status</a>
+                    <a th:href="@{/donor/dashboard}" class="btn btn-outline-secondary">Return to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Table of Donations -->
+            <div th:unless="${#lists.isEmpty(donations)}" class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold" style="color: var(--dn-red-dark);">Donation Ledger</h5>
+                    <span class="text-muted small">Total: <strong th:text="${#lists.size(donations)}">0</strong> event(s)</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Date & Time</th>
+                                    <th scope="col">Receiving Hospital</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Units</th>
+                                    <th scope="col">Type / Request</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Notes</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="d : ${donations}">
+                                    <td class="fw-semibold" th:text="${#temporals.format(d.donationDate, 'dd MMM yyyy, hh:mm a')}">
+                                        01 Jan 2026, 10:00 AM
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold d-block" th:text="${d.hospital.hospitalName}">Hospital Name</span>
+                                        <small class="text-muted" th:text="${d.hospital.contactNumber != null ? d.hospital.contactNumber : ''}"></small>
+                                    </td>
+                                    <td class="small text-muted" th:text="${d.hospital.city.name} + ', ' + ${d.hospital.province.name}">
+                                        Karachi, Sindh
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger text-white fs-6" th:text="${d.unitsDonated} + ' Unit(s)'">1 Unit(s)</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${d.bloodRequest != null}" class="badge bg-light text-dark border"
+                                              th:text="'Req #' + ${d.bloodRequest.id}">Req #12</span>
+                                        <span th:if="${d.bloodRequest == null}" class="badge bg-light text-muted border">Voluntary</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${d.donationStatus.name() == 'COMPLETED'}" class="badge bg-success status-pill">Completed</span>
+                                        <span th:if="${d.donationStatus.name() == 'SCHEDULED'}" class="badge bg-info text-dark status-pill">Scheduled</span>
+                                        <span th:if="${d.donationStatus.name() == 'CANCELLED'}" class="badge bg-secondary status-pill">Cancelled</span>
+                                        <span th:if="${d.donationStatus.name() == 'REJECTED'}" class="badge bg-danger status-pill">Rejected</span>
+                                    </td>
+                                    <td class="small text-muted" style="max-width: 250px;" th:text="${d.notes != null ? d.notes : '—'}">
+                                        No notes
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/donor/donations/{id}(id=${d.id})}" class="btn btn-outline-danger btn-sm">Certificate</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa — University CEP Project &nbsp;|&nbsp; Smart Emergency Blood-Donor Coordination Portal
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

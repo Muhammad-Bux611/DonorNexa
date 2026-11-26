@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Request Details | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('blood-requests')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('blood-requests')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Blood Request Details', 'Review requirement information and matching status')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <div class="row justify-content-center">
+                <div class="col-lg-9">
+
+                    <!-- Approval Status Banner -->
+                    <div th:if="${bloodRequest.status.name() == 'PENDING_ADMIN_APPROVAL' or bloodRequest.status.name() == 'PENDING'}" class="alert alert-warning border-warning mb-4 shadow-sm">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fs-4">&#9203;</span>
+                            <div>
+                                <h6 class="fw-bold mb-0">Awaiting Administrator Approval</h6>
+                                <p class="small mb-0">This blood request has been registered and is pending platform administrator verification. Compatible donor matching and invitation will commence automatically upon approval.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${bloodRequest.status.name() == 'APPROVED' or bloodRequest.status.name() == 'MATCHING' or bloodRequest.status.name() == 'MATCHING_IN_PROGRESS'}" class="alert alert-success border-success mb-4 shadow-sm">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fs-4">&#10004;</span>
+                            <div>
+                                <h6 class="fw-bold mb-0">Approved &amp; Matching Active</h6>
+                                <p class="small mb-0">This request is approved. Compatible volunteer donors have been matched and notified.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-danger text-white px-3 py-2 rounded-pill fs-6 fw-bold"
+                                      th:text="${#strings.replace(bloodRequest.bloodGroup.name(), '_', ' ')}">A+</span>
+                                <div>
+                                    <h4 class="fw-bold mb-0" th:text="'Blood Request #' + ${bloodRequest.id}">Request #1</h4>
+                                    <small class="text-muted" th:text="'Hospital: ' + ${bloodRequest.hospital.hospitalName}">Hospital Name</small>
+                                </div>
+                            </div>
+                            <div>
+                                <a th:href="@{/hospital/blood-requests/{id}/matches(id=${bloodRequest.id})}"
+                                   class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+                                    <span>View / Find Matches</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-4">
+                                        <small class="text-muted text-uppercase fw-semibold d-block mb-1">Units Required</small>
+                                        <h3 class="fw-bold mb-0 text-danger" th:text="${bloodRequest.unitsRequired} + ' Units'">2 Units</h3>
+                                        <small class="text-muted" th:text="'Fulfilled: ' + ${bloodRequest.unitsFulfilled} + ' units'">Fulfilled: 0 units</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-4">
+                                        <small class="text-muted text-uppercase fw-semibold d-block mb-1">Urgency Level</small>
+                                        <h4 class="fw-bold mb-0" th:text="${bloodRequest.urgency.name()}">NORMAL</h4>
+                                        <small class="text-muted" th:text="'Required by ' + ${#temporals.format(bloodRequest.requiredBy, 'yyyy-MM-dd HH:mm')}">Date</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-4">
+                                        <small class="text-muted text-uppercase fw-semibold d-block mb-1">Lifecycle Status</small>
+                                        <h4 class="fw-bold mb-0 text-primary" th:text="${bloodRequest.status.name()}">PENDING</h4>
+                                        <small class="text-muted" th:text="'Created: ' + ${#temporals.format(bloodRequest.createdAt, 'yyyy-MM-dd HH:mm')}">Date</small>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-muted text-uppercase small mb-2">Location Requirements</h6>
+                                    <p class="mb-1"><strong>City:</strong> <span th:text="${bloodRequest.city.name}">Lahore</span></p>
+                                    <p class="mb-1"><strong>Province:</strong> <span th:text="${bloodRequest.province.name}">Punjab</span></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-muted text-uppercase small mb-2">Clinical Notes</h6>
+                                    <p class="text-muted mb-0" th:text="${bloodRequest.hospitalNotes != null and !bloodRequest.hospitalNotes.isBlank() ? bloodRequest.hospitalNotes : 'No additional clinical notes specified.'}">
+                                        Notes
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-white py-3 px-4 border-top d-flex justify-content-between align-items-center">
+                            <a th:href="@{/hospital/blood-requests}" class="btn btn-outline-secondary rounded-pill px-4">
+                                &larr; Back to Requests
+                            </a>
+                            <div th:if="${bloodRequest.status.name() != 'CANCELLED' and bloodRequest.status.name() != 'FULFILLED'}">
+                                <form th:action="@{/hospital/blood-requests/{id}/cancel(id=${bloodRequest.id})}" method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button type="submit" class="btn btn-outline-danger rounded-pill px-3"
+                                            onclick="return confirm('Are you sure you want to cancel this blood request?');">
+                                        Cancel Request
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

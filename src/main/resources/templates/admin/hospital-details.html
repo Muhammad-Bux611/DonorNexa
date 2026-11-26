@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspect Hospital | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('hospitals')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('hospitals')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Inspect Hospital', 'Administrative Review & Actions')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Flash Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${successMessage}">Action completed successfully.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${errorMessage}">An error occurred.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Header & Breadcrumb -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <div class="small text-muted mb-1">
+                        <a th:href="@{/admin/hospitals}" class="text-decoration-none">← Back to Hospitals List</a>
+                    </div>
+                    <h2 class="fw-bold mb-1" th:text="${hospital.hospitalName}">Mayo Hospital Lahore</h2>
+                    <p class="text-muted mb-0">
+                        Registration No: <strong class="text-dark font-monospace" th:text="${hospital.registrationNumber}">HOSP-LHR-001</strong>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span th:if="${hospital.verificationStatus.name() == 'VERIFIED'}"
+                          class="status-pill verification-badge-verified">
+                        &#10004; Verified
+                    </span>
+                    <span th:if="${hospital.verificationStatus.name() == 'PENDING'}"
+                          class="status-pill verification-badge-pending">
+                        &#9203; Pending Verification
+                    </span>
+                    <span th:if="${hospital.verificationStatus.name() == 'REJECTED'}"
+                          class="status-pill verification-badge-rejected">
+                        &#10008; Verification Rejected
+                    </span>
+
+                    <span class="status-pill account-badge-active"
+                          th:if="${hospital.accountStatus.name() == 'ACTIVE'}">Account: Active</span>
+                    <span class="status-pill account-badge-suspended"
+                          th:if="${hospital.accountStatus.name() == 'SUSPENDED'}">Account: Suspended</span>
+                    <span class="status-pill account-badge-inactive"
+                          th:if="${hospital.accountStatus.name() == 'INACTIVE'}">Account: Inactive</span>
+                    <span class="status-pill account-badge-pending"
+                          th:if="${hospital.accountStatus.name() == 'PENDING_VERIFICATION'}">Account: Pending Review</span>
+                </div>
+            </div>
+
+            <div class="row g-4">
+
+                <!-- Left Column: Hospital Records -->
+                <div class="col-lg-6">
+                    <div class="profile-card mb-4">
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-3">Facility Credentials</h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="text-muted small">Hospital / Healthcare Facility Name</label>
+                                <div class="fw-semibold text-dark h5 mb-0" th:text="${hospital.hospitalName}">Mayo Hospital</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Official Registration Number</label>
+                                <div class="fw-semibold font-monospace" th:text="${hospital.registrationNumber}">HOSP-LHR-001</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Account Email</label>
+                                <div class="fw-semibold" th:text="${hospital.email}">info@mayo.edu.pk</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Contact Phone Number</label>
+                                <div class="fw-semibold" th:text="${hospital.contactNumber}">042-99200111</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Province / Administrative Area</label>
+                                <div class="fw-semibold" th:text="${hospital.provinceName}">Punjab</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">City</label>
+                                <div class="fw-semibold" th:text="${hospital.cityName}">Lahore</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="text-muted small">Complete Physical Address</label>
+                                <div class="fw-semibold text-dark" th:text="${hospital.completeAddress ?: 'Not provided'}">Hospital Road, Lahore</div>
+                            </div>
+                            <div class="col-12" th:if="${hospital.licenceFile != null and !hospital.licenceFile.isBlank()}">
+                                <label class="text-muted small d-block">Healthcare Commission Medical Licence</label>
+                                <a th:href="@{'/uploads/licences/' + ${hospital.licenceFile}}" target="_blank" class="btn btn-sm btn-outline-danger mt-1">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> View / Download Medical Licence PDF
+                                </a>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mt-4 mb-3">Audit Timestamps</h5>
+                        <div class="row g-3 small">
+                            <div class="col-sm-6">
+                                <label class="text-muted">Registered On</label>
+                                <div class="fw-semibold"
+                                     th:text="${hospital.createdAt != null ? #temporals.format(hospital.createdAt, 'dd MMM yyyy, HH:mm') : 'N/A'}">
+                                    01 Jan 2026
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted">Last Updated</label>
+                                <div class="fw-semibold text-muted"
+                                     th:text="${hospital.updatedAt != null ? #temporals.format(hospital.updatedAt, 'dd MMM yyyy, HH:mm') : 'N/A'}">
+                                    01 Jan 2026
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Administrative Actions -->
+                <div class="col-lg-6">
+
+                    <!-- Action 1: Hospital Verification Decision -->
+                    <div class="profile-card mb-4">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3 text-danger">Hospital Verification Decision</h5>
+
+                        <p class="small text-muted mb-3">
+                            As an administrator, review the hospital registration credentials against provincial healthcare commission databases.
+                        </p>
+
+                        <!-- If already rejected, show reason -->
+                        <div th:if="${hospital.rejectionReason != null && !hospital.rejectionReason.isBlank()}"
+                             class="alert alert-danger py-2 px-3 small mb-3">
+                            <strong>Recorded Rejection Reason:</strong>
+                            <div th:text="${hospital.rejectionReason}">Reason note.</div>
+                        </div>
+
+                        <!-- Approval Form -->
+                        <form th:action="@{/admin/hospitals/{id}/verify(id=${hospital.id})}" method="post" class="mb-4">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="action" value="APPROVE">
+
+                            <div class="p-3 bg-light rounded border mb-2">
+                                <div class="fw-bold text-success mb-1">&#10004; Approve Verification</div>
+                                <p class="small text-muted mb-2">
+                                    Grants official verified status and ensures the facility account is marked <strong>ACTIVE</strong>.
+                                </p>
+                                <button type="submit" class="btn btn-success btn-sm fw-semibold"
+                                        onclick="return confirm('Confirm verification approval for this hospital?');">
+                                    Approve & Verify Facility
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Rejection Form -->
+                        <form th:action="@{/admin/hospitals/{id}/verify(id=${hospital.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="action" value="REJECT">
+
+                            <div class="p-3 bg-light rounded border border-danger-subtle">
+                                <div class="fw-bold text-danger mb-1">&#10008; Reject Verification</div>
+                                <p class="small text-muted mb-2">
+                                    Rejection marks the account as <strong>INACTIVE</strong> and records a formal reason for the hospital to review.
+                                </p>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="rejectionReason">
+                                        Rejection Reason <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea name="rejectionReason" id="rejectionReason" rows="2" class="form-control form-control-sm"
+                                              placeholder="Explain why the credentials could not be verified..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-outline-danger btn-sm fw-semibold"
+                                        onclick="return confirm('Confirm rejection of this hospital application?');">
+                                    Reject Hospital Application
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Action 2: Account Lifecycle Management -->
+                    <div class="profile-card">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3 text-danger">Account Lifecycle Management</h5>
+                        <p class="small text-muted mb-3">
+                            Control user login capability and account operational standing independently of verification status.
+                        </p>
+
+                        <form th:action="@{/admin/hospitals/{id}/status(id=${hospital.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted mb-1" for="accountStatusSelect">
+                                    Set Account Status
+                                </label>
+                                <select name="accountStatus" id="accountStatusSelect" class="form-select form-select-sm">
+                                    <option th:each="st : ${accountStatuses}"
+                                            th:value="${st.name()}"
+                                            th:text="${st.name()}"
+                                            th:selected="${hospital.accountStatus == st}">
+                                    </option>
+                                </select>
+                                <div class="form-text small mt-1">
+                                    Setting to <strong>SUSPENDED</strong> or <strong>INACTIVE</strong> immediately disables login for this hospital.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-dark btn-sm fw-semibold"
+                                    onclick="return confirm('Apply account status change to this facility?');">
+                                Update Account Status
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

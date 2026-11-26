@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Emergency Blood Broadcasts | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark dn-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">DonorNexa</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#emergenciesNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="emergenciesNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/about}">About &amp; How It Works</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white active fw-semibold" th:href="@{/emergencies}">Active Emergencies</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/login/donor}">Donor Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/login/hospital}">Hospital Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-light btn-sm dn-register fw-semibold" th:href="@{/register/donor}">Become a Donor</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="container py-5 flex-grow-1">
+    <!-- Header banner -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                <h1 class="h3 fw-bold text-dark mb-0">Active Emergency Transfusion Broadcasts</h1>
+            </div>
+            <p class="text-muted small mb-0 mt-1">
+                Real-time critical transfusion appeals broadcasted by accredited hospitals across Pakistan. Sorted Critical first.
+            </p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="loadEmergencies()">
+                Refresh Live Feed
+            </button>
+            <a th:href="@{/donor-register}" class="btn btn-danger btn-sm rounded-pill px-3">
+                Register as Donor
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="row g-2 mb-4">
+        <div class="col-sm-6 col-md-4">
+            <input type="text" id="filterCity" class="form-control form-control-sm rounded-pill px-3" placeholder="Filter by City (e.g. Karachi, Lahore)..." oninput="applyFilters()">
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <select id="filterBlood" class="form-select form-select-sm rounded-pill px-3" onchange="applyFilters()">
+                <option value="">All Blood Groups</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+            </select>
+        </div>
+        <div class="col-md-5 text-md-end text-muted small d-flex align-items-center justify-content-md-end">
+            <span id="activeCountBadge">Loading emergencies...</span>
+        </div>
+    </div>
+
+    <!-- Emergencies Grid Container -->
+    <div id="emergenciesGrid" class="row g-3">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Connecting to emergency broadcast grid...</span>
+            </div>
+            <div class="text-muted small mt-2">Connecting to nationwide hospital emergency grid...</div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-white border-top py-4 text-secondary mt-auto">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <strong>DonorNexa</strong> &bull; Smart Emergency Blood-Donor Coordination Portal
+            <div class="small text-muted">&copy; 2026 DonorNexa Emergency Platform. Dedicated to saving lives.</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 gap-sm-3 small">
+            <a th:href="@{/}" class="text-decoration-none text-muted">Home</a>
+            <a th:href="@{/donor-register}" class="text-decoration-none text-muted">Register Donor</a>
+            <a th:href="@{/hospital-register}" class="text-decoration-none text-muted">Register Hospital</a>
+            <a th:href="@{/login/donor}" class="text-decoration-none text-muted">Donor Login</a>
+            <a th:href="@{/login/hospital}" class="text-decoration-none text-muted">Hospital Login</a>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let rawEmergencies = [];
+
+    document.addEventListener('DOMContentLoaded', function () {
+        loadEmergencies();
+        setInterval(tickCountdowns, 1000);
+        setInterval(loadEmergencies, 30000);
+    });
+
+    function loadEmergencies() {
+        fetch('/api/public/emergencies')
+            .then(res => res.json())
+            .then(data => {
+                rawEmergencies = data;
+                applyFilters();
+            })
+            .catch(err => {
+                console.warn('Could not load public emergencies:', err);
+                const container = document.getElementById('emergenciesGrid');
+                container.innerHTML = '<div class="col-12 text-center text-muted py-4">No active emergencies broadcasted at this moment.</div>';
+                document.getElementById('activeCountBadge').textContent = '0 active appeals';
+            });
+    }
+
+    function applyFilters() {
+        const cityFilter = (document.getElementById('filterCity').value || '').trim().toLowerCase();
+        const bloodFilter = (document.getElementById('filterBlood').value || '').trim();
+
+        const filtered = rawEmergencies.filter(e => {
+            const cityMatch = !cityFilter || (e.city && e.city.toLowerCase().includes(cityFilter));
+            const bloodMatch = !bloodFilter || (e.bloodGroup && e.bloodGroup === bloodFilter);
+            return cityMatch && bloodMatch;
+        });
+
+        document.getElementById('activeCountBadge').textContent = `Showing ${filtered.length} active broadcast(s)`;
+        renderGrid(filtered);
+    }
+
+    function renderGrid(emergencies) {
+        const container = document.getElementById('emergenciesGrid');
+        if (!emergencies || emergencies.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="card border-0 bg-white shadow-sm rounded-4 p-5 text-center">
+                        <div class="text-success fs-1 mb-2">✓</div>
+                        <h5 class="fw-bold text-dark">No Active Emergencies Found</h5>
+                        <p class="text-muted small mb-0">No blood appeals matching your criteria right now. Check back periodically or register as a voluntary donor.</p>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = emergencies.map((e, idx) => {
+            const isCritical = e.urgency === 'CRITICAL';
+            const urgencyBadge = isCritical
+                ? '<span class="badge bg-danger shadow-sm px-2 py-1"><span class="spinner-grow spinner-grow-sm me-1" style="width: 0.5rem; height: 0.5rem;"></span>CRITICAL</span>'
+                : (e.urgency === 'URGENT'
+                    ? '<span class="badge bg-warning text-dark px-2 py-1">URGENT</span>'
+                    : '<span class="badge bg-secondary px-2 py-1">NORMAL</span>');
+
+            const urgentBorder = isCritical ? 'border-danger border-2' : 'border-0';
+            const countdownText = e.countdown || formatCountdown(e.remainingSeconds);
+
+            return `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 ${urgentBorder} shadow-sm rounded-4 p-3 bg-white d-flex flex-column justify-content-between position-relative">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                ${urgencyBadge}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 fw-bold px-3 py-1 rounded-pill">
+                                    ${escapeHtml(e.bloodGroup)}
+                                </span>
+                            </div>
+                            <div class="text-muted small mb-3">
+                                <strong>City:</strong> ${escapeHtml(e.city)}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center text-muted small mb-3 p-2 bg-light rounded-3">
+                                <span>Required by:</span>
+                                <strong class="${isCritical ? 'text-danger' : 'text-dark'}" id="timer-item-${idx}">
+                                    ${countdownText}
+                                </strong>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="/login/donor" class="btn btn-danger btn-sm fw-semibold rounded-pill">
+                                    Sign In to Respond &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function tickCountdowns() {
+        if (!rawEmergencies) return;
+        rawEmergencies.forEach((e, idx) => {
+            if (e.remainingSeconds > 0) {
+                e.remainingSeconds--;
+                const elem = document.getElementById('timer-item-' + idx);
+                if (elem) {
+                    elem.textContent = formatCountdown(e.remainingSeconds);
+                }
+            }
+        });
+    }
+
+    function formatCountdown(sec) {
+        if (sec <= 0) return 'Deadline Passed';
+        const hours = Math.floor(sec / 3600);
+        const minutes = Math.floor((sec % 3600) / 60);
+        const seconds = sec % 60;
+        return String(hours).padStart(2, '0') + 'h ' +
+               String(minutes).padStart(2, '0') + 'm ' +
+               String(seconds).padStart(2, '0') + 's';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+</body>
+</html>

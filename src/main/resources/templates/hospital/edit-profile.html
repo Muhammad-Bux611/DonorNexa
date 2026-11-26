@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Edit Hospital Profile | DonorNexa</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+ <!-- Desktop Persistent Sidebar -->
+ <div class="d-none d-lg-block">
+ <div th:replace="~{fragments/sidebar :: sidebar('edit-profile')}"></div>
+ </div>
+ <!-- Mobile Offcanvas Sidebar Drawer -->
+ <div th:replace="~{fragments/header :: mobileSidebar('edit-profile')}"></div>
+
+ <!-- Main Content -->
+ <div class="dn-main-content">
+ <div th:replace="~{fragments/header :: topbar('Edit Profile', 'Update Operational Details')}"></div>
+
+ <main class="container-fluid px-4 py-4 flex-grow-1">
+
+ <div class="auth-card auth-card-wide my-3">
+ <div class="d-flex justify-content-between align-items-center mb-3">
+ <h2 class="auth-title mb-0"> Edit Hospital Profile</h2>
+ <a th:href="@{/hospital/profile}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+ </div>
+ <p class="auth-subtitle mb-4">
+ Update your facility's operational contact details and location. Protected legal records are locked.
+ </p>
+
+ <!-- Error alert -->
+ <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+ <span th:text="${errorMessage}">Validation error</span>
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+
+ <form th:action="@{/hospital/profile/edit}" th:object="${profileForm}" method="post" novalidate>
+ <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+ <!-- Hospital Name -->
+ <div class="mb-3">
+ <label class="form-label fw-semibold" for="hospitalName">
+ Hospital / Facility Name <span class="text-danger">*</span>
+ </label>
+ <input type="text" th:field="*{hospitalName}" id="hospitalName" class="form-control"
+ th:classappend="${#fields.hasErrors('hospitalName')} ? 'is-invalid'"
+ placeholder="e.g. Mayo Hospital Lahore">
+ <div class="invalid-feedback" th:if="${#fields.hasErrors('hospitalName')}"
+ th:errors="*{hospitalName}"></div>
+ </div>
+
+ <!-- Contact Phone Number -->
+ <div class="mb-3">
+ <label class="form-label fw-semibold" for="contactNumber">
+ Official Contact Phone Number <span class="text-danger">*</span>
+ </label>
+ <input type="tel" th:field="*{contactNumber}" id="contactNumber" class="form-control"
+ th:classappend="${#fields.hasErrors('contactNumber')} ? 'is-invalid'"
+ placeholder="e.g. 042-99200111">
+ <div class="invalid-feedback" th:if="${#fields.hasErrors('contactNumber')}"
+ th:errors="*{contactNumber}"></div>
+ <div class="form-text small">Used by emergency blood coordinators to reach your hospital immediately.</div>
+ </div>
+
+ <!-- Location Section (Cascading Province & City Dropdowns) -->
+ <div class="row g-3 mb-3">
+ <div class="col-md-6">
+ <label class="form-label fw-semibold" for="provinceSelect">
+ Province / Administrative Area <span class="text-danger">*</span>
+ </label>
+ <select th:field="*{provinceId}" id="provinceSelect" class="form-select"
+ th:classappend="${#fields.hasErrors('provinceId')} ? 'is-invalid'">
+ <option value="">-- Select Province --</option>
+ <option th:each="p : ${provinces}"
+ th:value="${p.id}"
+ th:text="${p.name}"></option>
+ </select>
+ <div class="invalid-feedback" th:if="${#fields.hasErrors('provinceId')}"
+ th:errors="*{provinceId}"></div>
+ </div>
+
+ <div class="col-md-6">
+ <div class="d-flex justify-content-between align-items-center mb-1">
+ <label class="form-label fw-semibold mb-0" for="citySelect">
+ City <span class="text-danger">*</span>
+ </label>
+ <div id="citySpinner" class="spinner-border spinner-border-sm text-danger d-none" role="status" aria-hidden="true">
+ <span class="visually-hidden">Loading...</span>
+ </div>
+ </div>
+ <select th:field="*{cityId}" id="citySelect" class="form-select"
+ th:classappend="${#fields.hasErrors('cityId')} ? 'is-invalid'"
+ th:data-preselected="${profileForm.cityId}">
+ <option value="">Select Province First</option>
+ </select>
+ <div id="cityStatusMessage" class="form-text small mt-1 d-none"></div>
+ <div class="invalid-feedback" th:if="${#fields.hasErrors('cityId')}"
+ th:errors="*{cityId}"></div>
+ </div>
+ </div>
+
+ <!-- Complete Address -->
+ <div class="mb-4">
+ <label class="form-label fw-semibold" for="completeAddress">
+ Complete Physical Address
+ </label>
+ <textarea th:field="*{completeAddress}" id="completeAddress" class="form-control" rows="2"
+ th:classappend="${#fields.hasErrors('completeAddress')} ? 'is-invalid'"
+ placeholder="Building, street, ward/sector, landmark..."></textarea>
+ <div class="invalid-feedback" th:if="${#fields.hasErrors('completeAddress')}"
+ th:errors="*{completeAddress}"></div>
+ </div>
+
+ <!-- Protected Immutable Attributes Box -->
+ <div class="alert alert-light border small text-muted mb-4">
+ <strong>Immutable Attributes:</strong> For security and legal compliance, your
+ Registration Number (<strong><span th:text="${hospital.registrationNumber}">HOSP-001</span></strong>),
+ Account Email (<strong><span th:text="${hospital.user.email}">info@hospital.org</span></strong>),
+ Account Role, and Verification Status are strictly immutable and cannot be changed by the hospital.
+ </div>
+
+                    <div class="d-flex flex-wrap gap-2 gap-sm-3">
+                        <button type="submit" class="btn btn-danger flex-grow-1 py-2 fw-semibold">
+                            Save Profile Changes
+                        </button>
+                        <a th:href="@{/hospital/profile}" class="btn btn-outline-secondary py-2 px-4">
+                            Cancel
+                        </a>
+                    </div>
+ </form>
+ </div>
+
+ </main>
+
+ <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+ <div class="container-fluid px-4">
+ DonorNexa &mdash; Connecting Donors. Bridging Lives. Saving Hope. &copy; 2026
+ </div>
+ </footer>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Cascading dropdown dynamic fetch script -->
+<script th:src="@{/js/location-dropdown.js}"></script>
+</body>
+</html>

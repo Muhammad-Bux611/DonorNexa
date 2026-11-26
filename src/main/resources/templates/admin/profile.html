@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Profile | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('profile')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('profile')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Admin Profile', 'Personal Information & Security')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Flash Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${successMessage}">Action completed successfully.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${errorMessage}">An error occurred.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Administrator Profile</h2>
+                    <p class="text-muted mb-0">Manage your administrative credentials, personal details, and account security.</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">← Back to Dashboard</a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Left Column: Details & Edit Form -->
+                <div class="col-lg-6">
+                    <div class="profile-card mb-4">
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-3">Administrator Account Details</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Account Full Name</label>
+                                <div class="fw-semibold text-dark" th:text="${adminUser.fullName}">System Administrator</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Email Address</label>
+                                <div class="fw-semibold text-dark" th:text="${adminUser.email}">admin@donornexa.com</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Contact Phone Number</label>
+                                <div class="fw-semibold text-dark" th:text="${adminUser.phoneNumber}">03000000000</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">System Role</label>
+                                <div><span class="badge bg-dark">ADMIN</span></div>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-3">Update Personal Details</h5>
+                        <form th:action="@{/admin/profile/edit}" th:object="${profileDTO}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted" for="fullName">Full Legal Name</label>
+                                <input type="text" id="fullName" th:field="*{fullName}" class="form-control form-control-sm"
+                                       th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted" for="phoneNumber">Contact Phone Number</label>
+                                <input type="text" id="phoneNumber" th:field="*{phoneNumber}" class="form-control form-control-sm"
+                                       th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+                            </div>
+
+                            <button type="submit" class="btn btn-danger btn-sm fw-semibold">Save Profile Changes</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right Column: Password Change Form -->
+                <div class="col-lg-6">
+                    <div class="profile-card">
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-3">Security &amp; Password Update</h5>
+                        <p class="small text-muted mb-3">
+                            Change your administrative login password. Choose a strong, memorable passphrase containing at least 8 characters.
+                        </p>
+
+                        <form th:action="@{/admin/profile/change-password}" th:object="${passwordDTO}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted" for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" th:field="*{currentPassword}" class="form-control form-control-sm"
+                                       th:classappend="${#fields.hasErrors('currentPassword')} ? 'is-invalid' : ''" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted" for="newPassword">New Password (min 8 chars)</label>
+                                <input type="password" id="newPassword" th:field="*{newPassword}" class="form-control form-control-sm"
+                                       th:classappend="${#fields.hasErrors('newPassword')} ? 'is-invalid' : ''" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold text-muted" for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="form-control form-control-sm"
+                                       th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+                            </div>
+
+                            <button type="submit" class="btn btn-dark btn-sm fw-semibold">Update Password</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

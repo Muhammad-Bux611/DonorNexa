@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DonorNexa | Connecting Donors. Bridging Lives. Saving Hope.</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark dn-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">DonorNexa</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#homeNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="homeNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active text-white fw-semibold" th:href="@{/}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/about}">About &amp; How It Works</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/emergencies}">Emergency Board</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/login/donor}">Donor Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" th:href="@{/login/hospital}">Hospital Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white-50" th:href="@{/admin/login}">Admin Portal</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="btn btn-outline-light btn-sm dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Register Account
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item py-2" th:href="@{/register/donor}">Register as Donor</a></li>
+                        <li><a class="dropdown-item py-2" th:href="@{/register/hospital}">Register Hospital</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-light btn-sm dn-register fw-semibold" th:href="@{/register/donor}">Become a Donor</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<main class="container py-5 flex-grow-1">
+    <section class="hero p-4 p-md-5 rounded-4 shadow-sm text-white position-relative overflow-hidden mb-5">
+        <span class="badge text-bg-light mb-3 fw-semibold">Smart Emergency Blood-Donor Coordination Portal</span>
+        <h1 class="display-4 fw-bold">Connecting Donors.<br>Bridging Lives. Saving Hope.</h1>
+        <p class="lead mt-3 max-w-750">
+            A state-of-the-art emergency blood coordination platform connecting accredited hospitals across Pakistan with verified voluntary blood donors in real time.
+        </p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+            <a class="btn btn-light btn-lg dn-register fw-bold px-4 shadow" th:href="@{/register/donor}">Register as a Donor</a>
+            <a class="btn btn-outline-light btn-lg fw-semibold px-4" th:href="@{/register/hospital}">Register Hospital</a>
+            <a class="btn btn-link text-white text-decoration-none d-flex align-items-center" th:href="@{/login}">
+                Existing Member? Sign In &rarr;
+            </a>
+        </div>
+    </section>
+
+    <!-- Real-Time Impact Counters Ticker -->
+    <section class="row g-3 mb-5 text-center" id="publicStatsTicker">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="text-danger fs-2 fw-bold" id="statDonors">--</div>
+                <div class="text-muted small fw-semibold text-uppercase">Registered Donors</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="text-primary fs-2 fw-bold" id="statHospitals">--</div>
+                <div class="text-muted small fw-semibold text-uppercase">Accredited Hospitals</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="text-success fs-2 fw-bold" id="statUnits">--</div>
+                <div class="text-muted small fw-semibold text-uppercase">Units Fulfilled</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="text-dark fs-2 fw-bold" id="statLives">--</div>
+                <div class="text-muted small fw-semibold text-uppercase">Lives Impacted</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Active Blood Emergencies Board -->
+    <section class="mb-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                    <h2 class="h4 fw-bold text-dark mb-0">Active Emergency Transfusion Broadcasts</h2>
+                </div>
+                <p class="text-muted small mb-0">Real-time emergency blood requests from partner hospitals requiring immediate donor response.</p>
+            </div>
+            <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="loadEmergencies()">
+                <i class="fa fa-sync"></i> Refresh Board
+            </button>
+        </div>
+
+        <div id="emergenciesContainer" class="row g-3">
+            <div class="col-12 text-center py-4">
+                <div class="spinner-border text-danger" role="status">
+                    <span class="visually-hidden">Loading emergency requests...</span>
+                </div>
+                <div class="text-muted small mt-2">Connecting to nationwide hospital emergency grid...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portal Sections: Donor, Hospital, Administrator -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-dark mb-1">Access DonorNexa Subsystems</h2>
+        <p class="text-muted">Choose your portal to sign in or register your profile</p>
+    </div>
+
+    <section class="row g-4 mb-5">
+
+        <!-- 1. Donor Section -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-4 rounded-4 hover-lift border-top border-danger border-4">
+                <div class="mb-3">
+                    <h3 class="h5 fw-bold text-dark mb-0">Volunteer Donors</h3>
+                    <small class="text-danger fw-semibold">Community Lifesavers</small>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Manage your volunteer profile, availability schedules, medical eligibility records, and respond to real-time hospital emergency requests.
+                </p>
+                <div class="d-grid gap-2 mt-3">
+                    <a class="btn btn-danger btn-sm fw-semibold" th:href="@{/register/donor}">
+                        Register as Donor
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm" th:href="@{/login/donor}">
+                        Donor Login
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Hospital Section -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-4 rounded-4 hover-lift border-top border-primary border-4">
+                <div class="mb-3">
+                    <h3 class="h5 fw-bold text-dark mb-0">Healthcare Facilities</h3>
+                    <small class="text-primary fw-semibold">Hospitals &amp; Blood Banks</small>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Issue emergency blood requests, verify blood transfusion inventories, and mobilize nearby compatible donors instantly with geographic precision.
+                </p>
+                <div class="d-grid gap-2 mt-3">
+                    <a class="btn btn-primary btn-sm fw-semibold" th:href="@{/register/hospital}">
+                        Register Hospital
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm" th:href="@{/login/hospital}">
+                        Hospital Login
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Administrator Section -->
+        <div class="col-lg-4 col-md-12">
+            <div class="card h-100 border-0 shadow-sm p-4 rounded-4 hover-lift border-top border-dark border-4 bg-white">
+                <div class="mb-3">
+                    <h3 class="h5 fw-bold text-dark mb-0">Administrator Portal</h3>
+                    <small class="text-dark fw-semibold">Platform &amp; Operations Command</small>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Dedicated operations terminal for system administrators to triage verification queues, manage users, audit system logs, and inspect platform analytics.
+                </p>
+                <div class="d-grid gap-2 mt-3">
+                    <a class="btn btn-dark btn-sm fw-semibold" th:href="@{/admin/login}">
+                        Administrator Portal
+                    </a>
+                    <a class="btn btn-outline-dark btn-sm" th:href="@{/admin/login}">
+                        Secure Admin Login
+                    </a>
+                </div>
+                <div class="mt-2 text-center">
+                    <span class="text-muted" style="font-size: 0.75rem;">Internal access only. No public admin registration.</span>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="bg-white border-top py-4 text-secondary">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <strong>DonorNexa</strong> &bull; Connecting Donors. Bridging Lives. Saving Hope.
+            <div class="small text-muted">&copy; 2026 DonorNexa Emergency Coordination Platform. All rights reserved.</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 gap-sm-3 small">
+            <a th:href="@{/register/donor}" class="text-decoration-none text-muted">Register Donor</a>
+            <a th:href="@{/register/hospital}" class="text-decoration-none text-muted">Register Hospital</a>
+            <a th:href="@{/login/donor}" class="text-decoration-none text-muted">Donor Login</a>
+            <a th:href="@{/login/hospital}" class="text-decoration-none text-muted">Hospital Login</a>
+            <a th:href="@{/admin/login}" class="text-decoration-none text-danger fw-semibold">Administrator Portal</a>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadStats();
+        loadEmergencies();
+        // Periodically refresh stats and countdowns
+        setInterval(tickCountdowns, 1000);
+        setInterval(loadStats, 30000);
+        setInterval(loadEmergencies, 45000);
+    });
+
+    function loadStats() {
+        fetch('/api/public/stats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('statDonors').textContent = data.totalDonors + '+';
+                document.getElementById('statHospitals').textContent = data.totalHospitals;
+                document.getElementById('statUnits').textContent = data.totalUnitsFulfilled + '+';
+                document.getElementById('statLives').textContent = data.livesImpacted + '+';
+            })
+            .catch(err => console.warn('Could not load public stats:', err));
+    }
+
+    let activeEmergencies = [];
+
+    function loadEmergencies() {
+        fetch('/api/public/emergencies')
+            .then(res => res.json())
+            .then(data => {
+                activeEmergencies = data;
+                renderEmergencies();
+            })
+            .catch(err => {
+                console.warn('Could not load active emergencies:', err);
+                const container = document.getElementById('emergenciesContainer');
+                container.innerHTML = '<div class="col-12 text-center text-muted py-3">Currently offline or no hospital emergencies broadcasted.</div>';
+            });
+    }
+
+    function renderEmergencies() {
+        const container = document.getElementById('emergenciesContainer');
+        if (!activeEmergencies || activeEmergencies.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="card border-0 bg-white shadow-sm rounded-4 p-4 text-center">
+                        <div class="text-success fs-1 mb-2">✓</div>
+                        <h5 class="fw-bold text-dark">No Critical Shortages At This Hour</h5>
+                        <p class="text-muted small mb-0">All current hospital transfusion requirements are safely met. Thank you to our active voluntary blood donors!</p>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = activeEmergencies.map((e, idx) => {
+            const isCritical = e.urgency === 'CRITICAL';
+            const urgencyBadge = isCritical
+                ? '<span class="badge bg-danger shadow-sm px-2 py-1"><span class="spinner-grow spinner-grow-sm me-1" style="width: 0.5rem; height: 0.5rem;"></span>CRITICAL</span>'
+                : (e.urgency === 'URGENT'
+                    ? '<span class="badge bg-warning text-dark px-2 py-1">URGENT</span>'
+                    : '<span class="badge bg-secondary px-2 py-1">NORMAL</span>');
+
+            const countdownText = e.countdown || formatCountdown(e.remainingSeconds);
+            const urgentBorder = isCritical ? 'border-danger border-2' : 'border-0';
+
+            return `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 ${urgentBorder} shadow-sm rounded-4 p-3 bg-white d-flex flex-column justify-content-between position-relative">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                ${urgencyBadge}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 fw-bold px-3 py-1 rounded-pill">
+                                    ${escapeHtml(e.bloodGroup)}
+                                </span>
+                            </div>
+                            <div class="text-muted small mb-3">
+                                <strong>City:</strong> ${escapeHtml(e.city)}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center text-muted small mb-3 p-2 bg-light rounded-3">
+                                <span><i class="fa fa-clock"></i> Deadline in:</span>
+                                <strong class="${isCritical ? 'text-danger' : 'text-dark'}" id="timer-home-${idx}">
+                                    ${countdownText}
+                                </strong>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="/login/donor" class="btn btn-danger btn-sm fw-semibold rounded-pill">
+                                    Respond as Donor &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function tickCountdowns() {
+        if (!activeEmergencies) return;
+        activeEmergencies.forEach((e, idx) => {
+            if (e.remainingSeconds > 0) {
+                e.remainingSeconds--;
+                const elem = document.getElementById('timer-home-' + idx);
+                if (elem) {
+                    elem.textContent = formatCountdown(e.remainingSeconds);
+                }
+            }
+        });
+    }
+
+    function formatCountdown(sec) {
+        if (sec <= 0) return 'Deadline Passed';
+        const hours = Math.floor(sec / 3600);
+        const minutes = Math.floor((sec % 3600) / 60);
+        const seconds = sec % 60;
+        return String(hours).padStart(2, '0') + 'h ' +
+               String(minutes).padStart(2, '0') + 'm ' +
+               String(seconds).padStart(2, '0') + 's';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+</body>
+</html>

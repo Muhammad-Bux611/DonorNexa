@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-lg navbar-dark dn-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">DonorNexa</a>
+        <div class="ms-auto">
+            <a class="btn btn-outline-light btn-sm me-2" th:href="@{/login}">Login</a>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-5 flex-grow-1">
+    <div class="text-center mb-5">
+        <h1 class="auth-title h2">Create Your Account</h1>
+        <p class="auth-subtitle">Choose the account type that fits your role in blood donation.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Donor card -->
+        <div class="col-md-5">
+            <a th:href="@{/register/donor}" class="role-card text-center h-100 d-flex flex-column align-items-center justify-content-center">
+                <div class="role-icon mb-3"></div>
+                <h2 class="h4 fw-bold mb-2" style="color:var(--dn-red-dark)">Register as a Donor</h2>
+                <p class="text-muted mb-3">
+                    Sign up to become a blood donor and help save lives during emergencies.
+                </p>
+                <span class="btn btn-dn-primary px-4">Get Started →</span>
+            </a>
+        </div>
+
+        <!-- Hospital card -->
+        <div class="col-md-5">
+            <a th:href="@{/register/hospital}" class="role-card text-center h-100 d-flex flex-column align-items-center justify-content-center">
+                <div class="role-icon mb-3"></div>
+                <h2 class="h4 fw-bold mb-2" style="color:var(--dn-red-dark)">Register a Hospital</h2>
+                <p class="text-muted mb-3">
+                    Register your hospital to post blood requests and coordinate with donors.
+                </p>
+                <span class="btn btn-dn-outline px-4">Register Hospital →</span>
+            </a>
+        </div>
+    </div>
+
+    <p class="text-center text-muted small mt-5">
+        Already have an account?
+        <a th:href="@{/login}" style="color:var(--dn-red)">Sign in here</a>
+    </p>
+</main>
+
+<footer class="text-center py-3 text-secondary small">
+    DonorNexa — University CEP Project
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

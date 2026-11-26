@@ -1,0 +1,854 @@
+/* ==========================================================================
+   DonorNexa — Master Red & White Theme & Responsive UI/UX Design System
+   Mobile-First, Accessible, Multi-Device Optimized (320px to 4K Displays)
+   ========================================================================== */
+
+:root {
+    /* Brand Color Palette */
+    --dn-red: #b5122b;
+    --dn-red-dark: #850d20;
+    --dn-red-light: #fff1f2;
+    --dn-soft: #fff3f4;
+    --dn-border: #e2e8f0;
+    --dn-border-red: #fecaca;
+    --dn-text-main: #1e293b;
+    --dn-text-muted: #64748b;
+    --dn-bg-light: #fffafa;
+    --dn-surface: #ffffff;
+
+    /* Sizing & Touch Targets */
+    --dn-touch-target: 44px;
+    --dn-radius-sm: 8px;
+    --dn-radius-md: 12px;
+    --dn-radius-lg: 16px;
+    --dn-radius-pill: 999px;
+
+    /* Shadows */
+    --dn-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --dn-shadow-md: 0 4px 12px rgba(133, 13, 32, 0.08);
+    --dn-shadow-lg: 0 8px 24px rgba(133, 13, 32, 0.12);
+}
+
+/* ── Global Reset & Viewport Constraints ─────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: var(--dn-bg-light);
+    color: var(--dn-text-main);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+}
+
+/* Prevent automatic iOS Safari zoom-in on input focus */
+@media (max-width: 767.98px) {
+    input, select, textarea, .form-control, .form-select {
+        font-size: 16px !important;
+    }
+}
+
+/* ── Public Navbar & Hero ─────────────────────────────────────────────────── */
+.dn-navbar {
+    background: var(--dn-red-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    padding: 0.65rem 0;
+}
+
+.hero {
+    color: white;
+    background: linear-gradient(120deg, #8f1024, #d52b45);
+    box-shadow: 0 1rem 2.5rem rgba(133, 13, 32, .14);
+    padding: clamp(1.5rem, 5vw, 3.5rem) !important;
+    border-radius: clamp(0.75rem, 2vw, 1.5rem) !important;
+}
+
+.hero h1 {
+    font-size: clamp(1.75rem, 5vw, 3rem) !important;
+    line-height: 1.15;
+}
+
+.hero p.lead {
+    font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+}
+
+.dn-register {
+    color: var(--dn-red-dark);
+}
+
+.info-card {
+    padding: clamp(1rem, 3vw, 1.75rem);
+    border: 1px solid #f1dadd;
+    border-radius: var(--dn-radius-md);
+    background: white;
+    box-shadow: var(--dn-shadow-sm);
+}
+
+.info-card h2 {
+    color: var(--dn-red-dark);
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+}
+
+/* ── Auth Pages ──────────────────────────────────────────────────────────── */
+.auth-card {
+    background: #fff;
+    border-radius: var(--dn-radius-lg);
+    box-shadow: var(--dn-shadow-md);
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.auth-card-wide {
+    max-width: 680px;
+}
+
+.auth-title {
+    color: var(--dn-red-dark);
+    font-weight: 700;
+    font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+}
+
+.auth-subtitle {
+    color: #64748b;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #334155;
+    margin-bottom: 0.35rem;
+}
+
+.required-star {
+    color: var(--dn-red);
+    margin-left: 2px;
+}
+
+/* Touch-friendly Form Controls */
+.form-control, .form-select {
+    min-height: var(--dn-touch-target);
+    border-radius: var(--dn-radius-sm);
+    border: 1px solid #cbd5e1;
+    padding: 0.55rem 0.85rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--dn-red);
+    box-shadow: 0 0 0 0.2rem rgba(181, 18, 43, 0.15);
+    outline: none;
+}
+
+/* Buttons */
+.btn-dn-primary {
+    background: var(--dn-red);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    min-height: var(--dn-touch-target);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1.25rem;
+    border-radius: var(--dn-radius-sm);
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-dn-primary:hover, .btn-dn-primary:focus {
+    background: var(--dn-red-dark);
+    color: #fff;
+}
+
+.btn-dn-outline {
+    border: 2px solid var(--dn-red);
+    color: var(--dn-red);
+    font-weight: 600;
+    background: transparent;
+    min-height: var(--dn-touch-target);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--dn-radius-sm);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-dn-outline:hover {
+    background: var(--dn-soft);
+    color: var(--dn-red-dark);
+}
+
+/* Password Toggle Wrapper */
+.pw-wrapper {
+    position: relative;
+}
+
+.pw-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    border: none;
+    background: none;
+    padding: 8px;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pw-toggle:hover {
+    color: var(--dn-red);
+}
+
+/* Register Selector Role Cards */
+.role-card {
+    border: 2px solid #f1dadd;
+    border-radius: var(--dn-radius-md);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    background: #fff;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.role-card:hover {
+    border-color: var(--dn-red);
+    box-shadow: var(--dn-shadow-md);
+    color: inherit;
+    transform: translateY(-2px);
+}
+
+.role-icon {
+    font-size: 2.5rem;
+}
+
+/* ── Dashboard Headers & Components ───────────────────────────────────────── */
+.dashboard-header {
+    background: linear-gradient(120deg, #8f1024, #d52b45);
+    color: #fff;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border-radius: var(--dn-radius-md);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--dn-shadow-sm);
+}
+
+.dashboard-header h1 {
+    font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.phase-badge {
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
+    padding: .3rem .8rem;
+    border-radius: var(--dn-radius-pill);
+    font-size: .82rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: .6rem;
+}
+
+.feature-card {
+    background: #fff;
+    border: 1px solid #f1dadd;
+    border-radius: var(--dn-radius-md);
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    height: 100%;
+    box-shadow: var(--dn-shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feature-card:hover {
+    box-shadow: var(--dn-shadow-md);
+}
+
+.feature-card h5 {
+    color: var(--dn-red-dark);
+}
+
+.coming-soon {
+    background: #fff3f4;
+    border: 1px dashed #e6a0aa;
+    border-radius: var(--dn-radius-sm);
+    padding: .5rem 1rem;
+    font-size: .88rem;
+    color: #9e3045;
+    display: inline-block;
+}
+
+/* ── Donor Management Cards ──────────────────────────────────────────────── */
+.blood-group-badge {
+    background-color: var(--dn-red);
+    color: #ffffff;
+    font-size: clamp(0.95rem, 2vw, 1.15rem);
+    font-weight: 700;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--dn-radius-pill);
+    display: inline-block;
+    text-align: center;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #f1dadd;
+    border-radius: var(--dn-radius-md);
+    padding: clamp(1rem, 2vw, 1.5rem);
+    box-shadow: var(--dn-shadow-sm);
+    height: 100%;
+}
+
+.stat-number, .stat-value {
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 800;
+    color: var(--dn-red-dark);
+    line-height: 1.1;
+}
+
+.stat-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+}
+
+.profile-card {
+    background: #ffffff;
+    border: 1px solid #f1dadd;
+    border-radius: var(--dn-radius-md);
+    padding: clamp(1.2rem, 3vw, 1.75rem);
+    box-shadow: var(--dn-shadow-sm);
+}
+
+.eligibility-box {
+    border-radius: var(--dn-radius-md);
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border-left: 5px solid transparent;
+}
+
+.eligibility-box.eligible {
+    background-color: #f0fdf4;
+    border-color: #22c55e;
+    color: #14532d;
+}
+
+.eligibility-box.ineligible {
+    background-color: #fef2f2;
+    border-color: #ef4444;
+    color: #7f1d1d;
+}
+
+.eligibility-box.cooldown {
+    background-color: #f0f9ff;
+    border-color: #0284c7;
+    color: #0c4a6e;
+}
+
+.eligibility-box.warning {
+    background-color: #fffbeb;
+    border-color: #f59e0b;
+    color: #78350f;
+}
+
+.status-pill {
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--dn-radius-pill);
+}
+
+/* ── Filter Box & Badges ─────────────────────────────────────────────────── */
+.filter-box {
+    background: #ffffff;
+    border: 1px solid #f1dadd;
+    border-radius: var(--dn-radius-md);
+    padding: clamp(0.85rem, 2vw, 1.25rem);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--dn-shadow-sm);
+}
+
+.verification-badge-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.verification-badge-verified {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.verification-badge-rejected {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.account-badge-active {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.account-badge-suspended {
+    background-color: #fef2f2;
+    color: #991b1b;
+}
+
+.account-badge-inactive {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.account-badge-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+/* ── Responsive Dashboard Layout & Persistent Sidebar ────────────────────── */
+.dn-dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    background-color: #f8fafc;
+    overflow-x: hidden;
+}
+
+.dn-sidebar {
+    width: 270px;
+    background: #ffffff;
+    border-right: 1px solid #eef2f6;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    z-index: 1030;
+}
+
+@media (min-width: 992px) {
+    .dn-sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+    }
+}
+
+/* When sidebar is rendered inside mobile offcanvas */
+.offcanvas-body .dn-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    height: 100% !important;
+    position: static !important;
+}
+
+.dn-sidebar-brand {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.dn-sidebar-brand .brand-icon {
+    font-size: 1.5rem;
+    color: var(--dn-red);
+}
+
+.dn-sidebar-brand .brand-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dn-red-dark);
+    margin: 0;
+    line-height: 1.1;
+}
+
+.dn-sidebar-brand .brand-sub {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.dn-user-card {
+    padding: 0.85rem 1rem;
+    margin: 0.75rem 0.85rem;
+    background: #fffafa;
+    border: 1px solid #fee2e2;
+    border-radius: var(--dn-radius-md);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dn-avatar-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--dn-red), var(--dn-red-dark));
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(181, 18, 43, 0.25);
+}
+
+.dn-user-info {
+    overflow: hidden;
+}
+
+.dn-user-name {
+    font-size: 0.90rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dn-user-role-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--dn-radius-pill);
+    display: inline-block;
+    background: #fee2e2;
+    color: var(--dn-red-dark);
+}
+
+.dn-sidebar-menu {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
+}
+
+.dn-menu-heading {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0.75rem 0.75rem 0.25rem;
+}
+
+.dn-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: var(--dn-touch-target);
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--dn-radius-sm);
+    color: #475569;
+    text-decoration: none;
+    font-size: 0.90rem;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+    margin-bottom: 0.25rem;
+}
+
+.dn-menu-item .menu-icon {
+    font-size: 1.15rem;
+    width: 22px;
+    text-align: center;
+}
+
+.dn-menu-item:hover {
+    color: var(--dn-red);
+    background-color: #fff1f2;
+}
+
+.dn-menu-item.active {
+    color: var(--dn-red-dark);
+    background-color: #ffe4e6;
+    font-weight: 700;
+    border-left: 3px solid var(--dn-red);
+}
+
+.dn-menu-item.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.dn-sidebar-footer {
+    padding: 0.85rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.dn-logout-btn {
+    width: 100%;
+    min-height: var(--dn-touch-target);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.55rem;
+    border-radius: var(--dn-radius-sm);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    transition: all 0.2s ease;
+}
+
+.dn-logout-btn:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* ── Top Header Bar ──────────────────────────────────────────────────────── */
+.dn-topbar {
+    min-height: 58px;
+    background: #ffffff;
+    border-bottom: 1px solid #eef2f6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem clamp(0.75rem, 3vw, 1.5rem);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    width: 100%;
+    max-width: 100%;
+}
+
+.dn-menu-toggle-btn {
+    min-width: 42px;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--dn-radius-sm);
+    padding: 0;
+}
+
+.dn-main-content {
+    flex-grow: 1;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* Responsive main content container padding */
+.dn-main-content > main,
+.dn-main-content > .container-fluid {
+    padding-left: clamp(0.75rem, 3vw, 1.75rem) !important;
+    padding-right: clamp(0.75rem, 3vw, 1.75rem) !important;
+    padding-top: clamp(0.85rem, 2.5vw, 1.5rem) !important;
+    padding-bottom: clamp(1rem, 3vw, 2rem) !important;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* ── Responsive Tables & Containers ──────────────────────────────────────── */
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--dn-radius-sm);
+    margin-bottom: 1rem;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: var(--dn-radius-pill);
+}
+
+.dn-table {
+    border-radius: var(--dn-radius-sm);
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: var(--dn-shadow-sm);
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.dn-table th {
+    background-color: var(--dn-soft);
+    color: var(--dn-red-dark);
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 0.75rem 0.85rem;
+}
+
+.dn-table td {
+    padding: 0.75rem 0.85rem;
+    vertical-align: middle;
+}
+
+/* ── Responsive Charts ───────────────────────────────────────────────────── */
+.chart-container,
+.card-body canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+/* ── Responsive Utilities ────────────────────────────────────────────────── */
+.hover-lift {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dn-shadow-md) !important;
+}
+
+/* ── Multi-Device Breakpoint Media Queries ────────────────────────────────── */
+
+/* 1. Small Mobile Phones (320px – 375px) */
+@media (max-width: 375px) {
+    .dn-navbar .navbar-brand {
+        font-size: 1.05rem;
+    }
+
+    .hero h1 {
+        font-size: 1.55rem !important;
+    }
+
+    .dashboard-header {
+        padding: 1rem !important;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.25rem !important;
+    }
+
+    .stat-number {
+        font-size: 1.35rem;
+    }
+
+    .auth-card {
+        padding: 1rem 0.85rem !important;
+    }
+
+    .btn {
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
+        font-size: 0.82rem;
+    }
+
+    /* Stack dual actions cleanly */
+    .d-flex.gap-2.align-items-center,
+    .d-flex.gap-3 {
+        gap: 0.5rem !important;
+    }
+}
+
+/* 2. Standard Mobile Phones (376px – 575.98px) */
+@media (max-width: 575.98px) {
+    /* Full width buttons in action rows */
+    .w-100-mobile {
+        width: 100% !important;
+    }
+
+    .hero .d-flex {
+        flex-direction: column;
+    }
+
+    .hero .d-flex .btn {
+        width: 100%;
+    }
+
+    /* Notification dropdown max-width on mobile */
+    .dropdown-menu[aria-labelledby="notificationDropdown"] {
+        width: calc(100vw - 20px) !important;
+        max-width: 320px !important;
+        right: 0 !important;
+        left: auto !important;
+    }
+
+    /* Form stacks */
+    .auth-card-wide {
+        padding: 1.25rem 1rem !important;
+    }
+
+    .d-flex.justify-content-between.align-items-center.flex-wrap {
+        gap: 0.5rem;
+    }
+}
+
+/* 3. All Mobile Viewports (< 768px) */
+@media (max-width: 767.98px) {
+    .dn-topbar h5 {
+        font-size: 0.95rem;
+        max-width: 160px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dn-topbar small {
+        display: none;
+    }
+
+    .table th, .table td {
+        font-size: 0.85rem;
+    }
+
+    /* Pagination container wraps cleanly */
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px;
+    }
+}
+
+/* 4. Tablets & Small Laptops (768px – 991.98px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .dashboard-header {
+        padding: 1.5rem;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+    }
+}
+
+/* 5. Desktop (>= 992px) */
+@media (min-width: 992px) {
+    .dn-main-content {
+        margin-left: 0;
+    }
+}
+
+/* 6. Large Screens (>= 1440px) */
+@media (min-width: 1440px) {
+    .container, .container-fluid {
+        max-width: 1560px;
+    }
+}

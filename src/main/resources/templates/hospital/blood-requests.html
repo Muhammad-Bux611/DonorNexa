@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Requests & Matching | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('blood-requests')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('blood-requests')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Blood Requests & Matching', 'Manage Emergency Patient Demands & Match Donors')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Flash Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${successMessage}">Operation successful!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${errorMessage}">An error occurred.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Page Header Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h2 class="h4 fw-bold mb-1">Hospital Blood Requests</h2>
+                        <p class="text-muted mb-0">Review active blood requirements, track patient demands, and match available donors in real time.</p>
+                    </div>
+                    <div>
+                        <a th:href="@{/hospital/blood-requests/new}" class="btn btn-danger px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                            <span>+ Raise New Blood Request</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requests Table Card -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">All Blood Requests</h5>
+                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill"
+                          th:text="${requestPage.totalElements + ' Total Request(s)'}">0 Total Requests</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Request ID</th>
+                                    <th>Blood Group</th>
+                                    <th>Units Req / Fulfilled</th>
+                                    <th>Urgency</th>
+                                    <th>Status</th>
+                                    <th>Location</th>
+                                    <th>Required By</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="req : ${requestPage.content}">
+                                    <td class="ps-4 fw-bold text-secondary" th:text="'#' + ${req.id}">#1</td>
+                                    <td>
+                                        <span class="badge bg-danger text-white px-3 py-2 rounded-pill fw-bold"
+                                              th:text="${#strings.replace(req.bloodGroup.name(), '_', ' ')}">A+</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold" th:text="${req.unitsRequired}">2</span>
+                                        <span class="text-muted">/</span>
+                                        <span class="text-success fw-bold" th:text="${req.unitsFulfilled}">0</span>
+                                        <span class="text-muted small">units</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${req.urgency.name() == 'CRITICAL'}" class="badge bg-danger text-white px-3 py-1 rounded-pill">CRITICAL</span>
+                                        <span th:if="${req.urgency.name() == 'URGENT'}" class="badge bg-warning text-dark px-3 py-1 rounded-pill">URGENT</span>
+                                        <span th:if="${req.urgency.name() == 'NORMAL'}" class="badge bg-info text-dark px-3 py-1 rounded-pill">NORMAL</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${req.status.name() == 'PENDING'}" class="badge bg-warning text-dark px-3 py-1 rounded-pill">PENDING</span>
+                                        <span th:if="${req.status.name() == 'MATCHING'}" class="badge bg-primary text-white px-3 py-1 rounded-pill">MATCHING</span>
+                                        <span th:if="${req.status.name() == 'PARTIALLY_FULFILLED'}" class="badge bg-info text-dark px-3 py-1 rounded-pill">PARTIAL</span>
+                                        <span th:if="${req.status.name() == 'FULFILLED'}" class="badge bg-success text-white px-3 py-1 rounded-pill">FULFILLED</span>
+                                        <span th:if="${req.status.name() == 'CANCELLED'}" class="badge bg-secondary text-white px-3 py-1 rounded-pill">CANCELLED</span>
+                                        <span th:if="${req.status.name() == 'EXPIRED'}" class="badge bg-dark text-white px-3 py-1 rounded-pill">EXPIRED</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${req.city.name + ', ' + req.province.name}">Lahore, Punjab</span>
+                                    </td>
+                                    <td class="small text-muted" th:text="${#temporals.format(req.requiredBy, 'yyyy-MM-dd HH:mm')}">2026-11-10</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a th:href="@{/hospital/blood-requests/{id}/matches(id=${req.id})}"
+                                               class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                <span>Matches</span>
+                                            </a>
+                                            <a th:href="@{/hospital/blood-requests/{id}(id=${req.id})}"
+                                               class="btn btn-sm btn-light border rounded-pill px-3">
+                                                Details
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${requestPage.empty}">
+                                    <td colspan="8" class="text-center py-5 text-muted">
+                                        <div class="py-4">
+                                            <h6 class="fw-bold text-dark">No Blood Requests Found</h6>
+                                            <p class="text-muted mb-3">You have not raised any emergency blood requests yet.</p>
+                                            <a th:href="@{/hospital/blood-requests/new}" class="btn btn-danger rounded-pill px-4">
+                                                Raise Your First Blood Request
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div th:if="${requestPage.totalPages > 1}" class="card-footer bg-white py-3 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted small"
+                          th:text="'Page ' + (${requestPage.number} + 1) + ' of ' + ${requestPage.totalPages}">Page 1 of 1</span>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${requestPage.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/hospital/blood-requests(page=${requestPage.number - 1})}">Previous</a>
+                            </li>
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, requestPage.totalPages - 1)}"
+                                th:classappend="${i == requestPage.number} ? 'active'">
+                                <a class="page-link" th:href="@{/hospital/blood-requests(page=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${requestPage.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/hospital/blood-requests(page=${requestPage.number + 1})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>My Profile | DonorNexa</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+ <!-- Desktop Persistent Sidebar -->
+ <div class="d-none d-lg-block">
+ <div th:replace="~{fragments/sidebar :: sidebar('profile')}"></div>
+ </div>
+ <!-- Mobile Offcanvas Sidebar Drawer -->
+ <div th:replace="~{fragments/header :: mobileSidebar('profile')}"></div>
+
+ <!-- Main Content -->
+ <div class="dn-main-content">
+ <div th:replace="~{fragments/header :: topbar('Donor Profile', 'Personal Information & Health Status')}"></div>
+
+ <main class="container-fluid px-4 py-4 flex-grow-1">
+
+ <!-- Flash Messages -->
+ <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+ <span th:text="${successMessage}"></span>
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+ <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+ <span th:text="${errorMessage}"></span>
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+
+ <!-- Header -->
+ <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+ <div>
+ <h2 class="h3 fw-bold mb-1">Donor Profile</h2>
+ <p class="text-muted mb-0 small">Review your registered personal, medical, and location records.</p>
+ </div>
+ <div class="d-flex gap-2 align-items-center">
+ <a th:href="@{/donor/profile/edit}" class="btn btn-dn-primary">
+ Edit Permitted Details
+ </a>
+ <a th:href="@{/donor/dashboard}" class="btn btn-outline-secondary">
+ Back to Dashboard
+ </a>
+ </div>
+ </div>
+
+ <!-- Profile Header Avatar Banner -->
+ <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-white rounded border shadow-sm">
+     <img th:if="${donor.photo != null and !donor.photo.isBlank()}" th:src="@{'/uploads/photos/' + ${donor.photo}}" alt="Donor Photo" class="rounded-circle border border-2 border-danger shadow-sm" style="width: 80px; height: 80px; object-fit: cover;">
+     <div th:unless="${donor.photo != null and !donor.photo.isBlank()}" class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center fw-bold fs-3 border border-2 border-danger" style="width: 80px; height: 80px;">
+         <span th:text="${#strings.substring(donor.user.fullName, 0, 1)}">D</span>
+     </div>
+     <div>
+         <h4 class="fw-bold mb-1" th:text="${donor.user.fullName}">Donor Name</h4>
+         <span class="badge bg-danger" th:text="${donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+         <span th:if="${donor.verified}" class="badge bg-success ms-1">&#10004; Verified Donor</span>
+         <span th:unless="${donor.verified}" class="badge bg-warning text-dark ms-1">&#9203; Pending Verification</span>
+     </div>
+ </div>
+
+ <div class="row g-4">
+ <!-- Personal & Medical Column -->
+ <div class="col-lg-8">
+ <div class="profile-card mb-4">
+ <div class="d-flex justify-content-between align-items-center mb-3">
+ <h5 class="fw-bold mb-0" style="color: var(--dn-red-dark);">Personal & Medical Information</h5>
+ <span class="blood-group-badge" th:text="${donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+ </div>
+
+ <div class="row g-3">
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Full Name</label>
+ <span class="fs-6 fw-bold" th:text="${donor.user.fullName}">Full Name</span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Email Address</label>
+ <span class="fs-6" th:text="${donor.user.email}">donor@example.com</span>
+ <span class="badge bg-light text-muted border ms-1">Immutable</span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Phone Number</label>
+ <span class="fs-6 fw-semibold" th:text="${donor.user.phoneNumber}">0300-1234567</span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Gender</label>
+ <span class="fs-6" th:text="${donor.gender.name().replace('_', ' ')}">Male</span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Date of Birth & Age</label>
+ <span class="fs-6" th:text="${#temporals.format(donor.dateOfBirth, 'dd MMMM yyyy')} + ' (' + ${eligibility.age} + ' years old)'">01 Jan 1995 (31 years old)</span>
+ <span class="badge bg-light text-muted border ms-1">Immutable</span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Body Weight</label>
+ <span class="fs-6" th:if="${donor.weight != null}" th:text="${donor.weight} + ' kg'">65.00 kg</span>
+ <span class="fs-6 text-danger fw-semibold" th:if="${donor.weight == null}">
+ Unrecorded (<a th:href="@{/donor/profile/edit}" class="text-decoration-none">Add weight &rarr;</a>)
+ </span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Last Donation Date</label>
+ <span class="fs-6" th:text="${donor.lastDonationDate != null ? #temporals.format(donor.lastDonationDate, 'dd MMMM yyyy') : 'No previous donations recorded'}">None</span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Blood Group Policy</label>
+ <span class="small text-muted">Fixed at registration for patient safety. Must be re-verified by an authorized blood bank before changes.</span>
+ </div>
+ </div>
+ </div>
+
+ <!-- Location Information Card -->
+ <div class="profile-card mb-4">
+ <div class="d-flex justify-content-between align-items-center mb-3">
+ <h5 class="fw-bold mb-0" style="color: var(--dn-red-dark);">Residential Location</h5>
+ <a th:href="@{/donor/profile/edit}" class="btn btn-sm btn-dn-outline">Change Location</a>
+ </div>
+
+ <div class="row g-3">
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Province / Administrative Area</label>
+ <span class="fs-6 fw-bold" th:text="${donor.province.name}">Punjab</span>
+ </div>
+
+ <div class="col-sm-6">
+ <label class="text-muted small fw-semibold text-uppercase d-block">City</label>
+ <span class="fs-6 fw-bold" th:text="${donor.city.name}">Lahore</span>
+ </div>
+
+ <div class="col-12">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Complete Address</label>
+ <span class="fs-6" th:text="${donor.completeAddress != null && !donor.completeAddress.isBlank() ? donor.completeAddress : 'No street address provided.'}">Street, Area</span>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Sidebar Column: Status & Eligibility -->
+ <div class="col-lg-4">
+ <!-- Account & Verification Status Card -->
+ <div class="profile-card mb-4">
+ <h5 class="fw-bold mb-3" style="color: var(--dn-red-dark);">Account Status</h5>
+
+ <div class="mb-3">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Verification Status</label>
+ <div class="mt-1">
+ <span th:if="${donor.verified}" class="badge bg-success status-pill">✓ Verified by Administrator</span>
+ <span th:unless="${donor.verified}" class="badge bg-warning text-dark status-pill">Pending Administrative Verification</span>
+ </div>
+ <small class="text-muted d-block mt-1">Verification is handled exclusively by platform administrators.</small>
+ </div>
+
+ <div class="mb-3">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Donation Availability</label>
+ <div class="mt-1 d-flex align-items-center justify-content-between">
+ <span th:if="${donor.availability.name() == 'AVAILABLE'}" class="badge bg-success status-pill">Available</span>
+ <span th:if="${donor.availability.name() == 'TEMPORARILY_UNAVAILABLE'}" class="badge bg-warning text-dark status-pill">Temporarily Unavailable</span>
+ <span th:if="${donor.availability.name() == 'UNAVAILABLE'}" class="badge bg-secondary status-pill">Unavailable</span>
+ <a th:href="@{/donor/availability}" class="btn btn-sm btn-link text-decoration-none">Update</a>
+ </div>
+ </div>
+
+ <div class="mb-3">
+ <label class="text-muted small fw-semibold text-uppercase d-block">Account State</label>
+ <span class="badge bg-success status-pill" th:text="${donor.user.accountStatus.name()}">ACTIVE</span>
+ </div>
+
+ <div>
+ <label class="text-muted small fw-semibold text-uppercase d-block">Account Role</label>
+ <span class="badge bg-light text-dark border" th:text="${donor.user.role.name()}">DONOR</span>
+ </div>
+ </div>
+
+ <!-- Detailed Eligibility Evaluation Card -->
+ <div class="profile-card">
+ <h5 class="fw-bold mb-3" style="color: var(--dn-red-dark);">CEP Health Criteria</h5>
+
+ <div class="mb-3">
+ <div class="small fw-semibold mb-1" th:classappend="${eligibility.ageEligible ? 'text-success' : 'text-danger'}">
+ <span th:text="${eligibility.ageEligible ? '✓' : '✗'}"></span> Age Requirement (18–60)
+ </div>
+ <small class="text-muted d-block">Donor is <span th:text="${eligibility.age}">30</span> years old.</small>
+ </div>
+
+ <div class="mb-3">
+ <div class="small fw-semibold mb-1" th:classappend="${eligibility.weightEligible ? 'text-success' : 'text-danger'}">
+ <span th:text="${eligibility.weightEligible ? '✓' : '✗'}"></span> Weight Requirement (≥ 50 kg)
+ </div>
+ <small class="text-muted d-block" th:if="${donor.weight != null}">Current weight: <span th:text="${donor.weight}">65</span> kg.</small>
+ <small class="text-danger d-block" th:if="${donor.weight == null}">Weight missing from profile.</small>
+ </div>
+
+ <div class="mb-3">
+ <div class="small fw-semibold mb-1" th:classappend="${eligibility.cooldownEligible ? 'text-success' : 'text-danger'}">
+ <span th:text="${eligibility.cooldownEligible ? '✓' : '✗'}"></span> Donation Cooldown (90 days)
+ </div>
+ <small class="text-muted d-block" th:if="${eligibility.nextEligibleDate != null}">
+ Next eligible date: <span th:text="${#temporals.format(eligibility.nextEligibleDate, 'dd MMM yyyy')}"></span> (<span th:text="${eligibility.daysRemainingCooldown}"></span> days left).
+ </small>
+ <small class="text-muted d-block" th:if="${eligibility.nextEligibleDate == null}">
+ No active interval restrictions.
+ </small>
+ </div>
+
+ <div>
+ <div class="small fw-semibold mb-1" th:classappend="${eligibility.availabilityEligible ? 'text-success' : 'text-danger'}">
+ <span th:text="${eligibility.availabilityEligible ? '✓' : '✗'}"></span> Operational Availability
+ </div>
+ <small class="text-muted d-block">Status: <span th:text="${donor.availability.name().replace('_', ' ')}">AVAILABLE</span></small>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ </main>
+
+ <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+ <div class="container-fluid px-4">
+ DonorNexa — University CEP Project &nbsp;|&nbsp; Smart Emergency Blood-Donor Coordination Portal
+ </div>
+ </footer>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

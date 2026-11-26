@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Donation Records | DonorNexa Admin</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+ <div class="d-none d-lg-block">
+ <div th:replace="~{fragments/sidebar :: sidebar('donations')}"></div>
+ </div>
+ <div th:replace="~{fragments/header :: mobileSidebar('donations')}"></div>
+
+ <div class="dn-main-content">
+ <div th:replace="~{fragments/header :: topbar('Donation Records', 'Clinical Donation Event Logs')}"></div>
+
+ <main class="container-fluid px-4 py-4 flex-grow-1">
+
+ <!-- Flash Alerts -->
+ <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+ <span th:text="${errorMessage}">An error occurred.</span>
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+
+ <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+ <div>
+ <h2 class="fw-bold mb-1"> Clinical Donation Records</h2>
+ <p class="text-muted mb-0">Browse all blood donation records, donor-hospital connections, and fulfillment statuses.</p>
+ </div>
+ <div>
+ <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">← Back to Dashboard</a>
+ </div>
+ </div>
+
+ <!-- Filter & Search Bar -->
+ <div class="filter-box mb-4">
+ <form th:action="@{/admin/donations}" method="get" class="row g-2 align-items-end">
+ <div class="col-md-6">
+ <label class="form-label small fw-semibold text-muted mb-1">Search Donations</label>
+ <input type="text" name="query" class="form-control form-control-sm"
+ placeholder="Search donor name or hospital name..."
+ th:value="${query}">
+ </div>
+ <div class="col-md-4 col-sm-6">
+ <label class="form-label small fw-semibold text-muted mb-1">Donation Status</label>
+ <select name="status" class="form-select form-select-sm">
+ <option value="">-- All Statuses --</option>
+ <option th:each="st : ${statuses}"
+ th:value="${st.name()}"
+ th:text="${st.name()}"
+ th:selected="${selectedStatus != null && selectedStatus == st}">
+ </option>
+ </select>
+ </div>
+ <div class="col-md-2 d-flex gap-2">
+ <button type="submit" class="btn btn-danger btn-sm flex-grow-1">Filter</button>
+ <a th:href="@{/admin/donations}" class="btn btn-outline-secondary btn-sm" title="Reset Filters">Reset</a>
+ </div>
+ </form>
+ </div>
+
+ <!-- Donations Table -->
+ <div class="card border-0 shadow-sm">
+ <div class="card-body p-0">
+ <div class="table-responsive">
+ <table class="table table-hover align-middle mb-0">
+ <thead class="table-light">
+ <tr>
+ <th>Donation ID</th>
+ <th>Donor Name</th>
+ <th>Hospital Recipient</th>
+ <th>Units</th>
+ <th>Donation Date</th>
+ <th>Status</th>
+ <th class="text-end">Actions</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr th:if="${donationPage.totalElements == 0}">
+ <td colspan="7" class="text-center py-5 text-muted">
+ <div style="font-size: 2.5rem;"></div>
+ <h6 class="mt-2 fw-bold">No donation records found.</h6>
+ <p class="small mb-0">Try clearing filters or search terms.</p>
+ </td>
+ </tr>
+ <tr th:each="d : ${donationPage.content}">
+ <td class="fw-bold font-monospace" th:text="'#' + ${d.id}">#1</td>
+ <td>
+ <div class="fw-semibold text-dark" th:text="${d.donor.user.fullName}">Donor Name</div>
+ <small class="text-muted" th:text="${d.donor.bloodGroup}">O_POSITIVE</small>
+ </td>
+ <td>
+ <div class="fw-semibold text-dark" th:text="${d.hospital.hospitalName}">Hospital Name</div>
+ <small class="text-muted" th:text="${d.hospital.registrationNumber}">HOSP-001</small>
+ </td>
+ <td>
+ <span class="fw-bold text-danger" th:text="${d.unitsDonated} + ' Unit(s)'">1 Unit(s)</span>
+ </td>
+ <td class="text-muted"
+ th:text="${d.donationDate != null ? #temporals.format(d.donationDate, 'dd MMM yyyy') : 'N/A'}">
+ 01 Jan 2026
+ </td>
+ <td>
+ <span class="badge"
+ th:classappend="${d.donationStatus.name() == 'COMPLETED'} ? 'bg-success' : (${d.donationStatus.name() == 'SCHEDULED'} ? 'bg-primary' : 'bg-secondary')"
+ th:text="${d.donationStatus}">
+ COMPLETED
+ </span>
+ </td>
+ <td class="text-end">
+ <a th:href="@{/admin/donations/{id}(id=${d.id})}"
+ class="btn btn-outline-danger btn-sm fw-semibold">
+ View Details →
+ </a>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+
+ <!-- Pagination Footer -->
+ <div th:if="${donationPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+ <small class="text-muted">
+ Page <span th:text="${donationPage.number + 1}">1</span> of <span th:text="${donationPage.totalPages}">1</span>
+ </small>
+ <nav>
+ <ul class="pagination pagination-sm mb-0">
+ <li class="page-item" th:classappend="${donationPage.first} ? 'disabled' : ''">
+ <a class="page-link"
+ th:href="@{/admin/donations(page=${donationPage.number - 1}, query=${query}, status=${selectedStatus != null ? selectedStatus.name() : ''})}">
+ Previous
+ </a>
+ </li>
+ <li class="page-item"
+ th:each="i : ${#numbers.sequence(0, donationPage.totalPages - 1)}"
+ th:classappend="${i == donationPage.number} ? 'active' : ''">
+ <a class="page-link"
+ th:href="@{/admin/donations(page=${i}, query=${query}, status=${selectedStatus != null ? selectedStatus.name() : ''})}"
+ th:text="${i + 1}">1</a>
+ </li>
+ <li class="page-item" th:classappend="${donationPage.last} ? 'disabled' : ''">
+ <a class="page-link"
+ th:href="@{/admin/donations(page=${donationPage.number + 1}, query=${query}, status=${selectedStatus != null ? selectedStatus.name() : ''})}">
+ Next
+ </a>
+ </li>
+ </ul>
+ </nav>
+ </div>
+ </div>
+
+ </main>
+
+ <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+ <div class="container-fluid px-4">
+ DonorNexa &mdash; University CEP Project &copy; 2026
+ </div>
+ </footer>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

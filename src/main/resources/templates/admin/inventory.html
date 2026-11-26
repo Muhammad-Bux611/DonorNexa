@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Inventory | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('inventory')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('inventory')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Blood Inventory', 'Centralized Hospital Reserves')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Centralized Blood Inventory</h2>
+                    <p class="text-muted mb-0">Overview of available and reserved blood units reported across verified hospital blood banks.</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">← Back to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Top Metric Banner -->
+            <div class="card border-0 shadow-sm p-4 mb-4 bg-danger text-white">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <div class="small text-white-50 text-uppercase fw-bold">Platform-Wide Reserves</div>
+                        <h1 class="display-5 fw-bold mb-0">
+                            <span th:text="${totalUnits}">0</span> <span class="fs-4 fw-normal">Units Available</span>
+                        </h1>
+                    </div>
+                    <div class="text-white-50 small">
+                        Real-time aggregate across all accredited healthcare institutions.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8 Blood Group Reserves Breakdown Cards -->
+            <h5 class="fw-bold mb-3 text-dark">Available Units by Blood Group</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-xl-3 col-md-3 col-sm-6" th:each="bg : ${bloodGroups}">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="stat-label mb-0" th:text="${bg.name()}">A_POSITIVE</div>
+                            <span class="badge bg-danger fs-6" th:text="${bg.name()}">A+</span>
+                        </div>
+                        <div class="stat-value text-dark mt-2">
+                            <span th:text="${unitsByGroup[bg] != null ? unitsByGroup[bg] : 0}">0</span>
+                            <small class="fs-6 text-muted fw-normal">Units</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hospital-wise Inventory Table -->
+            <h5 class="fw-bold mb-3 text-dark">Hospital Facility Inventory Records</h5>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Hospital Name</th>
+                                    <th>Blood Group</th>
+                                    <th>Available Units</th>
+                                    <th>Reserved Units</th>
+                                    <th>Total Recorded</th>
+                                    <th>Last Stock Update</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(inventoryList)}">
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <div style="font-size: 2.5rem;"></div>
+                                        <h6 class="mt-2 fw-bold">No inventory records currently logged.</h6>
+                                        <p class="small mb-0">Participating hospitals have not yet initialized their stock levels.</p>
+                                    </td>
+                                </tr>
+                                <tr th:each="item : ${inventoryList}">
+                                    <td>
+                                        <div class="fw-bold text-dark" th:text="${item.hospital.hospitalName}">Hospital Name</div>
+                                        <small class="text-muted" th:text="'Reg: ' + ${item.hospital.registrationNumber}">HOSP-001</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger fs-6" th:text="${item.bloodGroup}">O_POSITIVE</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success" th:text="${item.availableUnits}">10</span> Units
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-warning" th:text="${item.reservedUnits}">2</span> Units
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark" th:text="${item.availableUnits + item.reservedUnits}">12</span> Units
+                                    </td>
+                                    <td class="text-muted small"
+                                        th:text="${item.lastUpdated != null ? #temporals.format(item.lastUpdated, 'dd MMM yyyy, HH:mm') : 'N/A'}">
+                                        01 Jan 2026
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

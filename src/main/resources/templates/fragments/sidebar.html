@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+ <meta charset="UTF-8">
+</head>
+<body>
+
+<!-- Persistent Left Sidebar Fragment -->
+<aside th:fragment="sidebar(activeTab)" class="dn-sidebar" id="dashboardSidebar">
+ 
+ <!-- Branding Header -->
+ <a th:href="@{/}" class="dn-sidebar-brand">
+ <span class="brand-icon"></span>
+ <div>
+ <h1 class="brand-title">DonorNexa</h1>
+ <p class="brand-sub">PORTAL NAVIGATION</p>
+ </div>
+ </a>
+
+ <!-- Logged-in User Identity Card (Database-driven) -->
+ <div class="dn-user-card">
+ <div class="dn-avatar-circle"
+ th:text="${currentUser != null and currentUser.fullName != null and !currentUser.fullName.isBlank() ? #strings.substring(currentUser.fullName, 0, 1).toUpperCase() : 'U'}">
+ U
+ </div>
+ <div class="dn-user-info">
+ <h6 class="dn-user-name"
+ th:text="${currentUser != null ? currentUser.fullName : (userEmail != null ? userEmail : 'Authenticated User')}">
+ User
+ </h6>
+ <span class="dn-user-role-badge"
+ th:text="${currentUser != null ? currentUser.role : (userRole != null ? userRole : 'PORTAL')}">
+ DONOR
+ </span>
+ </div>
+ </div>
+
+ <!-- Navigation Menu Items -->
+ <nav class="dn-sidebar-menu">
+
+ <!-- ===================================================================
+ DONOR ROLE MENU
+ =================================================================== -->
+ <div sec:authorize="hasRole('DONOR')">
+ <div class="dn-menu-heading">Donor Portal</div>
+ <a th:href="@{/donor/dashboard}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'dashboard'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Dashboard</span>
+ </a>
+ <a th:href="@{/donor/profile}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'profile'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>View Profile</span>
+ </a>
+ <a th:href="@{/donor/profile/edit}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'edit-profile'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Edit Profile</span>
+ </a>
+ <a th:href="@{/donor/availability}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'availability'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>My Availability</span>
+ </a>
+ <a th:href="@{/donor/donations}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'donations'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Donation History</span>
+ </a>
+ <a th:href="@{/donor/matches}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'matches'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>My Blood Request Matches</span>
+ </a>
+ <a th:href="@{/donor/messages}"
+ class="dn-menu-item justify-content-between"
+ th:classappend="${activeTab == 'messages'} ? 'active' : ''">
+ <div class="d-flex align-items-center gap-2">
+ <span class="menu-icon"></span>
+ <span>Messages</span>
+ </div>
+ <span th:if="${unreadMessageCount != null and unreadMessageCount > 0}"
+ class="badge bg-danger rounded-pill"
+ th:text="${unreadMessageCount}">1</span>
+ </a>
+ <a th:href="@{/notifications}"
+ class="dn-menu-item justify-content-between"
+ th:classappend="${activeTab == 'notifications'} ? 'active' : ''">
+ <div class="d-flex align-items-center gap-2">
+ <span class="menu-icon"></span>
+ <span>Notifications</span>
+ </div>
+ <span th:if="${unreadNotificationCount > 0}"
+ class="badge bg-danger rounded-pill"
+ th:text="${unreadNotificationCount}">2</span>
+ </a>
+ </div>
+
+ <!-- ===================================================================
+ HOSPITAL ROLE MENU
+ =================================================================== -->
+ <div sec:authorize="hasRole('HOSPITAL')">
+ <div class="dn-menu-heading">Hospital Portal</div>
+ <a th:href="@{/hospital/dashboard}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'dashboard'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Dashboard</span>
+ </a>
+ <a th:href="@{/hospital/profile}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'profile'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>View Hospital Profile</span>
+ </a>
+ <a th:href="@{/hospital/profile/edit}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'edit-profile'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Edit Hospital Profile</span>
+ </a>
+ <a th:href="@{/hospital/verification}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'verification'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Verification Status</span>
+ </a>
+ <a th:href="@{/hospital/blood-requests}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'blood-requests'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Blood Requests & Matching</span>
+ </a>
+ <a th:href="@{/hospital/donations}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'donations'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Donations Management</span>
+ </a>
+ <a th:href="@{/hospital/inventory}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'inventory'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Blood Bank Inventory</span>
+ </a>
+ <a th:href="@{/hospital/reports}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'reports'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Reports & Analytics</span>
+ </a>
+ <a th:href="@{/hospital/messages}"
+ class="dn-menu-item justify-content-between"
+ th:classappend="${activeTab == 'messages'} ? 'active' : ''">
+ <div class="d-flex align-items-center gap-2">
+ <span class="menu-icon"></span>
+ <span>Donor Messages</span>
+ </div>
+ <span th:if="${unreadMessageCount != null and unreadMessageCount > 0}"
+ class="badge bg-danger rounded-pill"
+ th:text="${unreadMessageCount}">1</span>
+ </a>
+ <a th:href="@{/notifications}"
+ class="dn-menu-item justify-content-between"
+ th:classappend="${activeTab == 'notifications'} ? 'active' : ''">
+ <div class="d-flex align-items-center gap-2">
+ <span class="menu-icon"></span>
+ <span>Notifications</span>
+ </div>
+ <span th:if="${unreadNotificationCount > 0}"
+ class="badge bg-danger rounded-pill"
+ th:text="${unreadNotificationCount}">1</span>
+ </a>
+ </div>
+
+ <!-- ===================================================================
+ ADMIN ROLE MENU
+ =================================================================== -->
+ <div sec:authorize="hasRole('ADMIN')">
+ <div class="dn-menu-heading">Administration</div>
+ <a th:href="@{/admin/dashboard}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'dashboard'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Dashboard</span>
+ </a>
+ <a th:href="@{/admin/users}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'users'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Manage Users</span>
+ </a>
+ <a th:href="@{/admin/donors}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'donors'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Manage Donors</span>
+ </a>
+ <a th:href="@{/admin/hospitals}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'hospitals'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Manage Hospitals</span>
+ </a>
+ <a th:href="@{/admin/hospitals(verificationStatus='PENDING')}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'hospital-verification'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Hospital Verification</span>
+ </a>
+ <a th:href="@{/admin/verification}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'verification'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Verification Hub</span>
+ </a>
+ <a th:href="@{/admin/blood-requests}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'blood-requests'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Blood Requests</span>
+ </a>
+ <a th:href="@{/admin/matches}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'matches'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Matching Oversight</span>
+ </a>
+ <a th:href="@{/admin/donations}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'donations'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Donation Records</span>
+ </a>
+ <a th:href="@{/admin/inventory}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'inventory'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Blood Inventory</span>
+ </a>
+ <a th:href="@{/admin/messages}"
+ class="dn-menu-item justify-content-between"
+ th:classappend="${activeTab == 'messages'} ? 'active' : ''">
+ <div class="d-flex align-items-center gap-2">
+ <span class="menu-icon"></span>
+ <span>Coordination Messages</span>
+ </div>
+ <span th:if="${unreadMessageCount != null and unreadMessageCount > 0}"
+ class="badge bg-danger rounded-pill"
+ th:text="${unreadMessageCount}">0</span>
+ </a>
+ <a th:href="@{/admin/notifications}"
+ class="dn-menu-item justify-content-between"
+ th:classappend="${activeTab == 'notifications'} ? 'active' : ''">
+ <div class="d-flex align-items-center gap-2">
+ <span class="menu-icon"></span>
+ <span>Communications Oversight</span>
+ </div>
+ <span th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"
+ class="badge bg-danger rounded-pill"
+ th:text="${unreadNotificationCount}">0</span>
+ </a>
+ <a th:href="@{/admin/reports}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'reports'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Reports & Analytics</span>
+ </a>
+ <a th:href="@{/admin/audit-logs}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'audit-logs'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Audit Logs</span>
+ </a>
+ <a th:href="@{/admin/settings}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'settings'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Settings</span>
+ </a>
+ <a th:href="@{/admin/profile}"
+ class="dn-menu-item"
+ th:classappend="${activeTab == 'profile'} ? 'active' : ''">
+ <span class="menu-icon"></span>
+ <span>Admin Profile</span>
+ </a>
+ </div>
+
+ </nav>
+
+ <!-- Logout Section at Bottom -->
+ <div class="dn-sidebar-footer">
+ <form th:action="@{/logout}" method="post" class="m-0">
+ <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+ <button type="submit" class="btn dn-logout-btn">
+ <span>Sign Out</span>
+ </button>
+ </form>
+ </div>
+
+</aside>
+
+</body>
+</html>

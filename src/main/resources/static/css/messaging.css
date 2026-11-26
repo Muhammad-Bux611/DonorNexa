@@ -1,0 +1,468 @@
+/* ==========================================================================
+   DonorNexa — Professional Messaging Interface Stylesheet
+   Clean Red & White Theme with Responsive Split Layout
+   ========================================================================== */
+
+:root {
+    --dn-red: #b5122b;
+    --dn-red-dark: #850d20;
+    --dn-red-light: #fff1f2;
+    --dn-red-subtle: #fef2f2;
+    --dn-border: #e2e8f0;
+    --dn-text-main: #1e293b;
+    --dn-text-muted: #64748b;
+    --dn-bg-app: #f8fafc;
+}
+
+/* ── Main Chat Application Shell ────────────────────────────────────────── */
+.dn-messaging-app {
+    display: flex;
+    height: calc(100vh - 120px);
+    min-height: 560px;
+    background: #ffffff;
+    border: 1px solid var(--dn-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+/* ── Left Sidebar (Conversation List) ──────────────────────────────────── */
+.dn-messaging-sidebar {
+    width: 380px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--dn-border);
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+}
+
+.dn-messaging-sidebar-header {
+    padding: 1.25rem 1.25rem 0.75rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+}
+
+.dn-search-wrapper {
+    position: relative;
+    margin-top: 0.75rem;
+}
+
+.dn-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dn-text-muted);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+.dn-search-input {
+    width: 100%;
+    padding: 0.55rem 0.75rem 0.55rem 2.25rem;
+    font-size: 0.88rem;
+    border: 1px solid var(--dn-border);
+    border-radius: 999px;
+    background: #f8fafc;
+    color: var(--dn-text-main);
+    transition: all 0.2s ease;
+}
+
+.dn-search-input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: var(--dn-red);
+    box-shadow: 0 0 0 3px rgba(181, 18, 43, 0.12);
+}
+
+.dn-conversation-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+/* Custom Scrollbar */
+.dn-conversation-list::-webkit-scrollbar,
+.dn-chat-history::-webkit-scrollbar {
+    width: 6px;
+}
+.dn-conversation-list::-webkit-scrollbar-thumb,
+.dn-chat-history::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+.dn-conversation-list::-webkit-scrollbar-track,
+.dn-chat-history::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Conversation Item Card */
+.dn-conv-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #f8fafc;
+    border-left: 4px solid transparent;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.dn-conv-item:hover {
+    background-color: #fff8f8;
+    color: inherit;
+}
+
+.dn-conv-item.active {
+    background-color: var(--dn-red-light);
+    border-left-color: var(--dn-red);
+}
+
+.dn-conv-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--dn-red), var(--dn-red-dark));
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(181, 18, 43, 0.20);
+}
+
+.dn-conv-body {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.dn-conv-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.dn-conv-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dn-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.dn-conv-time {
+    font-size: 0.72rem;
+    color: var(--dn-text-muted);
+    flex-shrink: 0;
+}
+
+.dn-conv-preview {
+    font-size: 0.82rem;
+    color: var(--dn-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.dn-conv-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.dn-conv-badge-blood {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: var(--dn-red-dark);
+}
+
+.dn-conv-badge-unread {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: var(--dn-red);
+    color: #ffffff;
+    margin-left: auto;
+}
+
+/* ── Right Panel (Chat Canvas) ─────────────────────────────────────────── */
+.dn-messaging-main {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--dn-bg-app);
+}
+
+/* Chat Header */
+.dn-chat-header {
+    height: 70px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--dn-border);
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.dn-chat-header-user {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.dn-chat-header-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dn-text-main);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dn-chat-header-meta {
+    font-size: 0.80rem;
+    color: var(--dn-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Chat History Body */
+.dn-chat-history {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #fbfcfd;
+}
+
+/* Message Bubbles */
+.dn-msg-row {
+    display: flex;
+    flex-direction: column;
+    max-width: 72%;
+    animation: dnFadeIn 0.15s ease-out;
+}
+
+@keyframes dnFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dn-msg-row.sent {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.dn-msg-row.received {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.dn-msg-row.admin-msg {
+    align-self: center;
+    align-items: center;
+    max-width: 85%;
+}
+
+.dn-msg-sender-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    color: var(--dn-red-dark);
+}
+
+.dn-msg-bubble {
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    font-size: 0.90rem;
+    line-height: 1.45;
+    word-break: break-word;
+    position: relative;
+}
+
+/* Sent: DonorNexa Red Gradient */
+.dn-msg-row.sent .dn-msg-bubble {
+    background: linear-gradient(135deg, var(--dn-red), var(--dn-red-dark));
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px rgba(181, 18, 43, 0.20);
+}
+
+/* Received: Crisp White with Soft Border */
+.dn-msg-row.received .dn-msg-bubble {
+    background: #ffffff;
+    color: var(--dn-text-main);
+    border: 1px solid var(--dn-border);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* Admin Message Bubble */
+.dn-msg-row.admin-msg .dn-msg-bubble {
+    background: #fffbeb;
+    color: #78350f;
+    border: 1px solid #fef08a;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.dn-msg-time {
+    font-size: 0.68rem;
+    margin-top: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dn-msg-row.sent .dn-msg-time {
+    color: rgba(255, 255, 255, 0.75);
+    justify-content: flex-end;
+}
+
+.dn-msg-row.received .dn-msg-time {
+    color: var(--dn-text-muted);
+}
+
+.dn-msg-row.admin-msg .dn-msg-time {
+    color: #a16207;
+}
+
+/* Chat Footer & Message Form */
+.dn-chat-footer {
+    background: #ffffff;
+    border-top: 1px solid var(--dn-border);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dn-chat-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.dn-chat-input {
+    flex-grow: 1;
+    border: 1px solid var(--dn-border);
+    border-radius: 999px;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.90rem;
+    background: #f8fafc;
+    color: var(--dn-text-main);
+    transition: all 0.2s ease;
+}
+
+.dn-chat-input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: var(--dn-red);
+    box-shadow: 0 0 0 3px rgba(181, 18, 43, 0.12);
+}
+
+.dn-chat-send-btn {
+    border-radius: 999px;
+    padding: 0.65rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.90rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+}
+
+/* Empty State Screens */
+.dn-chat-empty-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2.5rem;
+    text-align: center;
+    background: #ffffff;
+}
+
+.dn-empty-icon-box {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--dn-red-light);
+    color: var(--dn-red);
+    font-size: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+}
+
+.dn-chat-empty-panel h4 {
+    font-weight: 700;
+    color: var(--dn-text-main);
+    margin-bottom: 0.5rem;
+}
+
+.dn-chat-empty-panel p {
+    color: var(--dn-text-muted);
+    max-width: 420px;
+    font-size: 0.92rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ── Responsive Mobile Layout (< 768px) ─────────────────────────────────── */
+@media (max-width: 767.98px) {
+    .dn-messaging-app {
+        height: calc(100vh - 100px);
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    /* Mobile toggling: show either sidebar or chat panel */
+    .dn-messaging-sidebar {
+        width: 100%;
+    }
+
+    .dn-messaging-app.has-active-chat .dn-messaging-sidebar {
+        display: none !important;
+    }
+
+    .dn-messaging-app:not(.has-active-chat) .dn-messaging-main {
+        display: none !important;
+    }
+
+    .dn-chat-header {
+        padding: 0 1rem;
+    }
+
+    .dn-msg-row {
+        max-width: 88%;
+    }
+}

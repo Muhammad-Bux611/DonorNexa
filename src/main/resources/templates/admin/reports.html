@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports &amp; Analytics | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('reports')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('reports')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Reports & Analytics', 'Comprehensive System Data Intelligence')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Platform Analytics &amp; Clinical Intelligence</h2>
+                    <p class="text-muted mb-0">System performance, volunteer donor demographics, institutional demand, and blood reserves.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-danger btn-sm dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown">
+                            Export System CSV
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                            <li><a class="dropdown-item small" th:href="@{/admin/reports/export(reportType='donors')}">Export Donors Directory (CSV)</a></li>
+                            <li><a class="dropdown-item small" th:href="@{/admin/reports/export(reportType='requests')}">Export Blood Requests (CSV)</a></li>
+                            <li><a class="dropdown-item small" th:href="@{/admin/reports/export(reportType='donations')}">Export Donations (CSV)</a></li>
+                            <li><a class="dropdown-item small" th:href="@{/admin/reports/export(reportType='hospitals')}">Export Hospital Activity (CSV)</a></li>
+                        </ul>
+                    </div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">&larr; Back to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Top Row: High-Level Overview Metrics -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Accounts</div>
+                        <div class="stat-value text-dark" th:text="${totalUsers}">0</div>
+                        <small class="text-success"><span th:text="${activeUsers}">0</span> active accounts</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Donors Community</div>
+                        <div class="stat-value text-danger" th:text="${totalDonors}">0</div>
+                        <small class="text-muted"><span th:text="${verifiedDonors}">0</span> verified (<span th:text="${totalDonors > 0 ? (verifiedDonors * 100 / totalDonors) : 0}">0</span>%)</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Institutional Hospitals</div>
+                        <div class="stat-value text-primary" th:text="${totalHospitals}">0</div>
+                        <small class="text-muted"><span th:text="${verifiedHospitals}">0</span> verified (<span th:text="${totalHospitals > 0 ? (verifiedHospitals * 100 / totalHospitals) : 0}">0</span>%)</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-label">Centralized Blood Stock</div>
+                        <div class="stat-value text-info" th:text="${totalInventoryUnits}">0</div>
+                        <small class="text-muted">Total units across 8 blood groups</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Charts Row (Chart.js) -->
+            <div class="row g-4 mb-4">
+                <!-- Blood Group Distribution Chart -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-dark">Donor Blood Group Distribution (Chart)</h6>
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                            <div style="width: 100%; max-width: 340px; height: 260px;">
+                                <canvas id="adminBloodGroupChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blood Request Status Chart -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-dark">Blood Request Lifecycle Distribution</h6>
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                            <div style="width: 100%; max-width: 340px; height: 260px;">
+                                <canvas id="adminRequestStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Trends Row -->
+            <div class="row g-4 mb-4">
+                <!-- Monthly Blood Requests Trend -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-dark">Monthly Blood Requests (Past 6 Months)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div style="width: 100%; height: 250px;">
+                                <canvas id="adminMonthlyRequestsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Donations Trend -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-dark">Monthly Blood Donations (Past 6 Months)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div style="width: 100%; height: 250px;">
+                                <canvas id="adminMonthlyDonationsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demographics & Clinical Breakdown Tables -->
+            <div class="row g-4 mb-4">
+                <!-- Donor Blood Group Distribution Table -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-dark">Donor Community Breakdown by Blood Group</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light small">
+                                        <tr>
+                                            <th>Blood Group</th>
+                                            <th>Registered Donors</th>
+                                            <th>Proportion</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="entry : ${donorBloodGroups}">
+                                            <td>
+                                                <span class="badge bg-danger fs-6" th:text="${entry.key}">O+</span>
+                                            </td>
+                                            <td class="fw-bold text-dark" th:text="${entry.value}">0</td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="progress flex-grow-1" style="height: 6px;">
+                                                        <div class="progress-bar bg-danger"
+                                                             role="progressbar"
+                                                             th:style="'width: ' + (${totalDonors > 0 ? (entry.value * 100 / totalDonors) : 0}) + '%;'">
+                                                        </div>
+                                                    </div>
+                                                    <span class="small text-muted font-monospace"
+                                                          th:text="${totalDonors > 0 ? (entry.value * 100 / totalDonors) : 0} + '%'">0%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Donor Availability Breakdown -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-dark">Donor Availability Demographics</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light small">
+                                        <tr>
+                                            <th>Availability Status</th>
+                                            <th>Donors Count</th>
+                                            <th>Standing</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="entry : ${donorAvailability}">
+                                            <td class="fw-semibold text-dark" th:text="${entry.key}">AVAILABLE</td>
+                                            <td class="fw-bold" th:text="${entry.value}">0</td>
+                                            <td>
+                                                <span class="badge"
+                                                      th:classappend="${entry.key == 'AVAILABLE'} ? 'bg-success' : (${entry.key == 'TEMPORARILY_UNAVAILABLE'} ? 'bg-warning text-dark' : 'bg-secondary')"
+                                                      th:text="${entry.key == 'AVAILABLE' ? 'Active Responder' : (entry.key == 'TEMPORARILY_UNAVAILABLE' ? 'On Break' : 'Inactive')}">
+                                                    Active
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hospital Activity Surveillance Table -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-dark">Hospital Institutional Activity Surveillance</h6>
+                    <a th:href="@{/admin/reports/export(reportType='hospitals')}" class="btn btn-sm btn-outline-danger">Export CSV</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>Hospital Name</th>
+                                    <th>Location</th>
+                                    <th>Accreditation</th>
+                                    <th>Blood Requests</th>
+                                    <th>Donations Recorded</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(hospitalActivity)}">
+                                    <td colspan="5" class="text-center py-4 text-muted">No hospitals registered on the platform yet.</td>
+                                </tr>
+                                <tr th:each="h : ${hospitalActivity}">
+                                    <td class="fw-semibold text-dark" th:text="${h.name}">Hospital Name</td>
+                                    <td class="small text-muted" th:text="${h.city + ', ' + h.province}">City, Province</td>
+                                    <td>
+                                        <span th:if="${h.verified}" class="badge bg-success">Verified</span>
+                                        <span th:unless="${h.verified}" class="badge bg-warning text-dark">Pending</span>
+                                    </td>
+                                    <td class="fw-bold text-dark" th:text="${h.requestsCount}">0</td>
+                                    <td class="fw-bold text-success" th:text="${h.donationsCount}">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    fetch("/admin/reports/chart-data")
+        .then(response => response.json())
+        .then(data => {
+            const isMobile = window.innerWidth < 768;
+
+            // 1. Blood Group Chart
+            const bgCanvas = document.getElementById("adminBloodGroupChart");
+            if (bgCanvas && data.bloodGroupDistribution) {
+                new Chart(bgCanvas, {
+                    type: "doughnut",
+                    data: {
+                        labels: data.bloodGroupDistribution.labels,
+                        datasets: [{
+                            data: data.bloodGroupDistribution.data,
+                            backgroundColor: [
+                                "#dc2626", "#ef4444", "#f87171", "#fca5a5",
+                                "#b91c1c", "#991b1b", "#7f1d1d", "#450a0a"
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: isMobile ? "bottom" : "right" } }
+                    }
+                });
+            }
+
+            // 2. Request Status Chart
+            const statusCanvas = document.getElementById("adminRequestStatusChart");
+            if (statusCanvas && data.requestStatusDistribution) {
+                new Chart(statusCanvas, {
+                    type: "doughnut",
+                    data: {
+                        labels: data.requestStatusDistribution.labels,
+                        datasets: [{
+                            data: data.requestStatusDistribution.data,
+                            backgroundColor: ["#f59e0b", "#3b82f6", "#10b981", "#6b7280"]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: isMobile ? "bottom" : "right" } }
+                    }
+                });
+            }
+
+            // 3. Monthly Requests Chart
+            const reqCanvas = document.getElementById("adminMonthlyRequestsChart");
+            if (reqCanvas && data.monthlyRequests) {
+                new Chart(reqCanvas, {
+                    type: "bar",
+                    data: {
+                        labels: data.monthlyRequests.labels,
+                        datasets: [{
+                            label: "Total Requests",
+                            data: data.monthlyRequests.data,
+                            backgroundColor: "#dc2626",
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // 4. Monthly Donations Chart
+            const donCanvas = document.getElementById("adminMonthlyDonationsChart");
+            if (donCanvas && data.monthlyDonations) {
+                new Chart(donCanvas, {
+                    type: "line",
+                    data: {
+                        labels: data.monthlyDonations.labels,
+                        datasets: [{
+                            label: "Recorded Donations",
+                            data: data.monthlyDonations.data,
+                            borderColor: "#dc2626",
+                            backgroundColor: "rgba(220, 38, 38, 0.1)",
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: "#dc2626"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    }
+                });
+            }
+        })
+        .catch(err => console.error("Failed to load admin chart data:", err));
+});
+</script>
+</body>
+</html>

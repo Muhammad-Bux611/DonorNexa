@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "donornexa",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "https://YOUR-RENDER-SERVICE-NAME.onrender.com/$1"
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Requests Administration | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('blood-requests')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('blood-requests')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Blood Requests', 'Hospital Requests Monitoring & Control')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Flash Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${successMessage}">Action completed successfully.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${errorMessage}">An error occurred.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Emergency Blood Requests</h2>
+                    <p class="text-muted mb-0">Oversee all hospital-issued clinical blood requests, fulfillment progress, and emergency statuses.</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">← Back to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="filter-box mb-4">
+                <form th:action="@{/admin/blood-requests}" method="get" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Search Requests</label>
+                        <input type="text" name="query" class="form-control form-control-sm"
+                               placeholder="Search hospital name or clinical notes..."
+                               th:value="${query}">
+                    </div>
+                    <div class="col-md-2 col-sm-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">-- All Statuses --</option>
+                            <option th:each="st : ${statuses}"
+                                    th:value="${st.name()}"
+                                    th:text="${st.name()}"
+                                    th:selected="${selectedStatus != null && selectedStatus == st}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Urgency</label>
+                        <select name="urgency" class="form-select form-select-sm">
+                            <option value="">-- All Urgencies --</option>
+                            <option th:each="u : ${urgencies}"
+                                    th:value="${u.name()}"
+                                    th:text="${u.name()}"
+                                    th:selected="${selectedUrgency != null && selectedUrgency == u}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Blood Group</label>
+                        <select name="bloodGroup" class="form-select form-select-sm">
+                            <option value="">-- All Groups --</option>
+                            <option th:each="bg : ${bloodGroups}"
+                                    th:value="${bg.name()}"
+                                    th:text="${bg.name()}"
+                                    th:selected="${selectedBloodGroup != null && selectedBloodGroup == bg}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-danger btn-sm flex-grow-1">Filter</button>
+                        <a th:href="@{/admin/blood-requests}" class="btn btn-outline-secondary btn-sm" title="Reset Filters">Reset</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Requests Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Hospital</th>
+                                    <th>Blood Group</th>
+                                    <th>Units Req / Fulfilled</th>
+                                    <th>Urgency</th>
+                                    <th>Status</th>
+                                    <th>Required By</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${requestPage.totalElements == 0}">
+                                    <td colspan="8" class="text-center py-5 text-muted">
+                                        <div style="font-size: 2.5rem;"></div>
+                                        <h6 class="mt-2 fw-bold">No blood requests matched the criteria.</h6>
+                                        <p class="small mb-0">Adjust filters or search parameters.</p>
+                                    </td>
+                                </tr>
+                                <tr th:each="req : ${requestPage.content}">
+                                    <td class="fw-bold font-monospace" th:text="'#' + ${req.id}">#1</td>
+                                    <td>
+                                        <div class="fw-semibold text-dark" th:text="${req.hospital.hospitalName}">Hospital Name</div>
+                                        <small class="text-muted" th:text="${req.city.name} + ', ' + ${req.province.name}">Lahore, Punjab</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger fs-6" th:text="${req.bloodGroup}">O_POSITIVE</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark" th:text="${req.unitsFulfilled}">0</span> /
+                                        <span th:text="${req.unitsRequired}">2</span> Units
+                                    </td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${req.urgency.name() == 'CRITICAL'} ? 'bg-danger' : (${req.urgency.name() == 'URGENT'} ? 'bg-warning text-dark' : 'bg-info text-dark')"
+                                              th:text="${req.urgency}">
+                                            URGENT
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${req.status.name() == 'FULFILLED'} ? 'bg-success' : (${req.status.name() == 'CANCELLED'} ? 'bg-secondary' : 'bg-primary')"
+                                              th:text="${req.status}">
+                                            PENDING
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small"
+                                        th:text="${req.requiredBy != null ? #temporals.format(req.requiredBy, 'dd MMM yyyy, HH:mm') : 'As soon as possible'}">
+                                        Immediate
+                                    </td>
+                                    <td class="text-end">
+                                        <a th:href="@{/admin/blood-requests/{id}(id=${req.id})}"
+                                           class="btn btn-outline-danger btn-sm fw-semibold">
+                                            Inspect →
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div th:if="${requestPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                    <small class="text-muted">
+                        Page <span th:text="${requestPage.number + 1}">1</span> of <span th:text="${requestPage.totalPages}">1</span>
+                    </small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${requestPage.first} ? 'disabled' : ''">
+                                <a class="page-link"
+                                   th:href="@{/admin/blood-requests(page=${requestPage.number - 1}, query=${query}, status=${selectedStatus != null ? selectedStatus.name() : ''}, urgency=${selectedUrgency != null ? selectedUrgency.name() : ''}, bloodGroup=${selectedBloodGroup != null ? selectedBloodGroup.name() : ''})}">
+                                    Previous
+                                </a>
+                            </li>
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, requestPage.totalPages - 1)}"
+                                th:classappend="${i == requestPage.number} ? 'active' : ''">
+                                <a class="page-link"
+                                   th:href="@{/admin/blood-requests(page=${i}, query=${query}, status=${selectedStatus != null ? selectedStatus.name() : ''}, urgency=${selectedUrgency != null ? selectedUrgency.name() : ''}, bloodGroup=${selectedBloodGroup != null ? selectedBloodGroup.name() : ''})}"
+                                   th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${requestPage.last} ? 'disabled' : ''">
+                                <a class="page-link"
+                                   th:href="@{/admin/blood-requests(page=${requestPage.number + 1}, query=${query}, status=${selectedStatus != null ? selectedStatus.name() : ''}, urgency=${selectedUrgency != null ? selectedUrgency.name() : ''}, bloodGroup=${selectedBloodGroup != null ? selectedBloodGroup.name() : ''})}">
+                                    Next
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

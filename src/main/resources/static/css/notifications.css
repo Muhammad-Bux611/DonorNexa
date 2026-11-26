@@ -1,0 +1,340 @@
+/* ==========================================================================
+   DonorNexa — Notification Center Stylesheet
+   Clean Red & White Theme with Category Accents & Responsive Layout
+   ========================================================================== */
+
+:root {
+    --dn-red: #b5122b;
+    --dn-red-dark: #850d20;
+    --dn-red-light: #fff1f2;
+    --dn-border: #e2e8f0;
+    --dn-text-main: #1e293b;
+    --dn-text-muted: #64748b;
+}
+
+/* ── Notification Hub Header ────────────────────────────────────────────── */
+.dn-notif-header {
+    background: #ffffff;
+    border: 1px solid var(--dn-border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1.5rem;
+}
+
+.dn-notif-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--dn-red-dark);
+    margin: 0;
+}
+
+.dn-notif-sub {
+    font-size: 0.90rem;
+    color: var(--dn-text-muted);
+    margin: 0.25rem 0 0 0;
+}
+
+.dn-notif-counter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.dn-notif-counter-pill.total {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+}
+
+.dn-notif-counter-pill.unread {
+    background: #fee2e2;
+    color: var(--dn-red-dark);
+    border: 1px solid #fecaca;
+}
+
+/* ── Filter Bar ─────────────────────────────────────────────────────────── */
+.dn-notif-filter-card {
+    background: #ffffff;
+    border: 1px solid var(--dn-border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    margin-bottom: 1.5rem;
+}
+
+.dn-filter-btn {
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--dn-border);
+    background: #ffffff;
+    color: var(--dn-text-main);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.dn-filter-btn:hover {
+    border-color: var(--dn-red);
+    color: var(--dn-red);
+    background: #fff8f8;
+}
+
+.dn-filter-btn.active {
+    background: var(--dn-red);
+    border-color: var(--dn-red);
+    color: #ffffff;
+}
+
+/* ── Notification Cards ─────────────────────────────────────────────────── */
+.dn-notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+}
+
+.dn-notif-card {
+    background: #ffffff;
+    border: 1px solid var(--dn-border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    position: relative;
+}
+
+.dn-notif-card:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+}
+
+/* Unread Notification Accent */
+.dn-notif-card.unread {
+    background: #fffdfd;
+    border-left: 4px solid var(--dn-red);
+    border-color: #fecaca var(--dn-border) var(--dn-border) var(--dn-red);
+}
+
+.dn-notif-card.read {
+    opacity: 0.90;
+}
+
+/* Icon Box per Category */
+.dn-notif-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+/* Category Colors */
+.cat-blood-request .dn-notif-icon-box,
+.dn-notif-icon-box.cat-blood_request,
+.dn-notif-icon-box.cat-blood-request {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.cat-donor-match .dn-notif-icon-box,
+.dn-notif-icon-box.cat-donor_match,
+.dn-notif-icon-box.cat-donor-match {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.cat-donation .dn-notif-icon-box,
+.dn-notif-icon-box.cat-donation,
+.dn-notif-icon-box.cat-donation_update,
+.dn-notif-icon-box.cat-donation_reminder {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.cat-message .dn-notif-icon-box,
+.dn-notif-icon-box.cat-message {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+.cat-system .dn-notif-icon-box,
+.dn-notif-icon-box.cat-system,
+.dn-notif-icon-box.cat-system_alert {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+/* Card Body */
+.dn-notif-body {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.dn-notif-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.dn-notif-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dn-text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dn-notif-badge-new {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--dn-red);
+    color: #ffffff;
+}
+
+.dn-notif-badge-type {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.dn-notif-time {
+    font-size: 0.75rem;
+    color: var(--dn-text-muted);
+    white-space: nowrap;
+}
+
+.dn-notif-msg {
+    font-size: 0.90rem;
+    color: #334155;
+    line-height: 1.5;
+    margin: 0 0 0.5rem 0;
+}
+
+.dn-notif-recipient-info {
+    font-size: 0.78rem;
+    color: var(--dn-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Actions Column */
+.dn-notif-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.dn-btn-mark-read {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-weight: 600;
+    border: 1px solid var(--dn-border);
+    background: #ffffff;
+    color: #475569;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dn-btn-mark-read:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--dn-red);
+}
+
+/* ── Empty State ─────────────────────────────────────────────────────────── */
+.dn-notif-empty {
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.dn-notif-empty-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem auto;
+}
+
+/* ── Pagination ─────────────────────────────────────────────────────────── */
+.dn-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    margin-top: 1.5rem;
+}
+
+.dn-pagination .page-link {
+    border-radius: 8px;
+    color: var(--dn-text-main);
+    border-color: var(--dn-border);
+    padding: 0.45rem 0.85rem;
+    font-weight: 500;
+    font-size: 0.88rem;
+}
+
+.dn-pagination .page-item.active .page-link {
+    background-color: var(--dn-red);
+    border-color: var(--dn-red);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* ── Responsive Rules (< 768px) ─────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+    .dn-notif-card {
+        flex-direction: column;
+        gap: 0.85rem;
+        padding: 1rem;
+    }
+
+    .dn-notif-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 0.75rem;
+        margin-top: 0.25rem;
+    }
+}

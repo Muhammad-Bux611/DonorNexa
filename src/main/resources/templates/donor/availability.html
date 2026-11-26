@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Availability Management | DonorNexa</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+ <!-- Desktop Persistent Sidebar -->
+ <div class="d-none d-lg-block">
+ <div th:replace="~{fragments/sidebar :: sidebar('availability')}"></div>
+ </div>
+ <!-- Mobile Offcanvas Sidebar Drawer -->
+ <div th:replace="~{fragments/header :: mobileSidebar('availability')}"></div>
+
+ <!-- Main Content -->
+ <div class="dn-main-content">
+ <div th:replace="~{fragments/header :: topbar('Availability Status', 'Manage Operational Standing')}"></div>
+
+ <main class="container-fluid px-4 py-4 flex-grow-1">
+
+ <!-- Flash Messages -->
+ <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+ <span th:text="${successMessage}"></span>
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+ <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+ <span th:text="${errorMessage}"></span>
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+
+ <!-- Header -->
+ <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+ <div>
+ <h2 class="h3 fw-bold mb-1">Donation Availability</h2>
+ <p class="text-muted mb-0 small">Control whether hospital coordination modules can match and contact you for emergencies.</p>
+ </div>
+ <a th:href="@{/donor/dashboard}" class="btn btn-outline-secondary">
+ Back to Dashboard
+ </a>
+ </div>
+
+ <div class="row g-4">
+ <!-- Main Form Column -->
+ <div class="col-lg-7">
+ <div class="profile-card">
+ <h5 class="fw-bold mb-3" style="color: var(--dn-red-dark);">Update Your Status</h5>
+
+ <div class="p-3 mb-4 rounded bg-light border d-flex align-items-center justify-content-between">
+ <div>
+ <div class="text-muted small text-uppercase fw-semibold">Current Stored Status</div>
+ <div class="fw-bold fs-5 mt-1">
+ <span th:if="${donor.availability.name() == 'AVAILABLE'}" class="text-success">● Available to Donate</span>
+ <span th:if="${donor.availability.name() == 'TEMPORARILY_UNAVAILABLE'}" class="text-warning">● Temporarily Unavailable</span>
+ <span th:if="${donor.availability.name() == 'UNAVAILABLE'}" class="text-secondary">● Unavailable</span>
+ </div>
+ </div>
+ <span class="blood-group-badge" th:text="${donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+ </div>
+
+ <form th:action="@{/donor/availability}" th:object="${availabilityForm}" method="post">
+ <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+ <div class="mb-4">
+ <label class="form-label fw-bold mb-3">Select Status Option:</label>
+
+ <!-- Available Option -->
+ <div class="form-check p-3 border rounded mb-3" style="cursor: pointer;">
+ <input class="form-check-input ms-0 me-3" type="radio" th:field="*{availability}"
+ id="availAvailable" value="AVAILABLE">
+ <label class="form-check-label w-100" for="availAvailable" style="cursor: pointer;">
+ <span class="fw-bold text-success">Available</span>
+ <p class="small text-muted mb-0 mt-1">
+ You are healthy, feeling well, and willing to be matched with emergency blood requests in your area.
+ </p>
+ </label>
+ </div>
+
+ <!-- Temporarily Unavailable Option -->
+ <div class="form-check p-3 border rounded mb-3" style="cursor: pointer;">
+ <input class="form-check-input ms-0 me-3" type="radio" th:field="*{availability}"
+ id="availTemp" value="TEMPORARILY_UNAVAILABLE">
+ <label class="form-check-label w-100" for="availTemp" style="cursor: pointer;">
+ <span class="fw-bold text-warning">Temporarily Unavailable</span>
+ <p class="small text-muted mb-0 mt-1">
+ Use this if you are travelling, recovering from mild sickness, taking temporary antibiotics, or taking a short break.
+ </p>
+ </label>
+ </div>
+
+ <!-- Unavailable Option -->
+ <div class="form-check p-3 border rounded" style="cursor: pointer;">
+ <input class="form-check-input ms-0 me-3" type="radio" th:field="*{availability}"
+ id="availUnavail" value="UNAVAILABLE">
+ <label class="form-check-label w-100" for="availUnavail" style="cursor: pointer;">
+ <span class="fw-bold text-secondary"> Unavailable</span>
+ <p class="small text-muted mb-0 mt-1">
+ You do not wish to receive donation alerts at this time.
+ </p>
+ </label>
+ </div>
+
+ <div class="text-danger small mt-2" th:if="${#fields.hasErrors('availability')}"
+ th:errors="*{availability}"></div>
+ </div>
+
+ <button type="submit" class="btn btn-dn-primary py-2 px-4 w-100">
+ Save Availability Status
+ </button>
+ </form>
+ </div>
+ </div>
+
+ <!-- Sidebar Guidelines -->
+ <div class="col-lg-5">
+ <div class="profile-card mb-4">
+ <h5 class="fw-bold mb-3" style="color: var(--dn-red-dark);">Important Guidelines</h5>
+ <ul class="text-muted small ps-3 mb-0 d-flex flex-column gap-2">
+ <li>Setting your status to <strong>Available</strong> enables matching algorithms to include you in compatible emergency alerts.</li>
+ <li>If you donated blood recently, the <strong>90-day medical cooldown</strong> is tracked automatically by the system and overrides operational availability.</li>
+ <li>You can return here and change your status anytime.</li>
+ </ul>
+ </div>
+
+ <div class="profile-card">
+ <h5 class="fw-bold mb-3" style="color: var(--dn-red-dark);">Current Health Status</h5>
+ <p class="small text-muted mb-2" th:text="${eligibility.summaryMessage}"></p>
+ <div class="p-2 rounded bg-light border small">
+ <span class="badge" th:classappend="${eligibility.statusBadgeClass}" th:text="${eligibility.eligible ? 'Eligible' : 'Not Currently Eligible'}">Status</span>
+ &nbsp;Age: <span th:text="${eligibility.age}"></span> yrs &nbsp;|&nbsp;
+ Weight: <span th:text="${donor.weight != null ? donor.weight + ' kg' : 'Unrecorded'}"></span>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ </main>
+
+ <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+ <div class="container-fluid px-4">
+ DonorNexa — University CEP Project &nbsp;|&nbsp; Smart Emergency Blood-Donor Coordination Portal
+ </div>
+ </footer>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

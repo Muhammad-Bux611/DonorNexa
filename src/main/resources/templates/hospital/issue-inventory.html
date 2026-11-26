@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Blood Stock | DonorNexa Hospital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('inventory')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('inventory')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Issue Blood', 'Clinical Dispatch & Transfusion Allocation')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Alerts -->
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}">An error occurred.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Page Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom gap-3">
+                <div>
+                    <h2 class="h3 fw-bold mb-1">Issue Blood Stock for Transfusion</h2>
+                    <p class="text-muted mb-0 small">Deduct eligible unexpired units from available stock against patient requests or emergency procedures using FIFO protocol.</p>
+                </div>
+                <div>
+                    <a th:href="@{/hospital/inventory}" class="btn btn-outline-secondary">
+                        Back to Inventory
+                    </a>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm p-4">
+                        <form th:action="@{/hospital/inventory/issue}" th:object="${issueForm}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                            <div class="mb-3">
+                                <label for="bloodGroup" class="form-label fw-semibold">
+                                    Blood Group Required <span class="text-danger">*</span>
+                                </label>
+                                <select id="bloodGroup" th:field="*{bloodGroup}" class="form-select"
+                                        th:classappend="${#fields.hasErrors('bloodGroup')} ? 'is-invalid' : ''" required>
+                                    <option value="">-- Select Blood Group --</option>
+                                    <option th:each="bg : ${bloodGroups}"
+                                            th:value="${bg}"
+                                            th:text="${bg.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">A+</option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('bloodGroup')}" th:errors="*{bloodGroup}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="units" class="form-label fw-semibold">
+                                    Units to Issue <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" id="units" th:field="*{units}" class="form-control"
+                                       min="1" max="50" required
+                                       th:classappend="${#fields.hasErrors('units')} ? 'is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('units')}" th:errors="*{units}"></div>
+                                <div class="form-text small text-muted">Stock will be automatically deducted from the oldest unexpired batches first (FIFO).</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="bloodRequestId" class="form-label fw-semibold">
+                                    Linked Emergency Request (Optional)
+                                </label>
+                                <select id="bloodRequestId" th:field="*{bloodRequestId}" class="form-select">
+                                    <option value="">-- Clinical Issuance / In-Hospital Transfusion --</option>
+                                    <option th:each="req : ${activeRequests}"
+                                            th:value="${req.id}"
+                                            th:text="'Request #' + ${req.id} + ' (' + ${req.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')} + ', Needs ' + (${req.unitsRequired} - ${req.unitsFulfilled}) + ' more unit(s))'">
+                                        Request #1
+                                    </option>
+                                </select>
+                                <div class="form-text small text-muted">If linked, will automatically increment request fulfillment and mark FULFILLED once requirement is met.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="notes" class="form-label fw-semibold">Transfusion &amp; Recipient Notes</label>
+                                <textarea id="notes" th:field="*{notes}" class="form-control" rows="3"
+                                          placeholder="Recipient MR number, operating theater, transfusion crossmatch reference..."></textarea>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('notes')}" th:errors="*{notes}"></div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a th:href="@{/hospital/inventory}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-dn-primary px-4 fw-bold">
+                                    Confirm Stock Issuance
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; Connecting Donors. Bridging Lives. Saving Hope. &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

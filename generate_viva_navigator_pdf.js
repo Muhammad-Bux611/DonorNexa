@@ -1,0 +1,753 @@
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+console.log('Generating DonorNexa Viva Code Navigator & Line-Number Index...');
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DonorNexa — Viva Code Navigator & Line-Number Index</title>
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 14mm 14mm 14mm;
+    @bottom-right {
+      content: "Page " counter(page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 8.5pt;
+      color: #718096;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1a202c;
+    line-height: 1.45;
+    font-size: 9pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+    margin-bottom: 14px;
+  }
+
+  /* Header Header */
+  .viva-header {
+    background: linear-gradient(135deg, #c8102e 0%, #800020 100%);
+    color: white;
+    padding: 22px 25px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .viva-title {
+    font-size: 24pt;
+    font-weight: 800;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.5px;
+  }
+
+  .viva-subtitle {
+    font-size: 12pt;
+    font-weight: 400;
+    color: #fed7d7;
+    margin: 0 0 14px 0;
+  }
+
+  .viva-meta-bar {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 14px;
+    border-radius: 5px;
+    font-size: 8.5pt;
+  }
+
+  /* Instructions Banner */
+  .ide-shortcuts-box {
+    background: #ebf8ff;
+    border: 1px solid #bee3f8;
+    border-left: 4px solid #3182ce;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: 8.5pt;
+  }
+
+  .ide-shortcuts-box strong {
+    color: #2b6cb0;
+  }
+
+  /* Master Table */
+  table.lookup-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+    margin-bottom: 20px;
+  }
+
+  table.lookup-table th {
+    background: #2d3748;
+    color: white;
+    padding: 7px 8px;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #1a202c;
+  }
+
+  table.lookup-table td {
+    padding: 6px 8px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+
+  table.lookup-table tr:nth-child(even) td {
+    background: #f7fafc;
+  }
+
+  .line-badge {
+    background: #fff5f5;
+    color: #c8102e;
+    border: 1px solid #feb2b2;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-weight: 700;
+    font-size: 8pt;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .class-pill {
+    font-family: 'Consolas', monospace;
+    font-weight: 600;
+    color: #2d3748;
+    background: #edf2f7;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 7.5pt;
+  }
+
+  /* Functional Cards */
+  .function-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    margin-bottom: 14px;
+    overflow: hidden;
+    page-break-inside: avoid;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .card-top {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-title {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+  }
+
+  .card-badge {
+    background: #c8102e;
+    color: white;
+    font-size: 7.5pt;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+  }
+
+  .card-body {
+    padding: 10px 14px;
+  }
+
+  .nav-info-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 8px;
+    background: #fdf2f2;
+    border: 1px solid #fed7d7;
+    border-radius: 5px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    font-size: 8pt;
+  }
+
+  .code-snippet {
+    background: #1a202c;
+    color: #edf2f7;
+    font-family: 'Consolas', monospace;
+    font-size: 8pt;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 8px 0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .viva-tip {
+    background: #f0fff4;
+    border-left: 3px solid #38a169;
+    padding: 6px 10px;
+    font-size: 8pt;
+    color: #22543d;
+    border-radius: 2px;
+    margin-top: 6px;
+  }
+
+  .viva-tip strong {
+    color: #1c4532;
+  }
+
+  h2.section-header {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #c8102e;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER BANNER -->
+<div class="viva-header">
+  <div class="viva-title">DonorNexa — Viva Code Navigator</div>
+  <div class="viva-subtitle">Exam & Viva Oral Defense: Instant Line-by-Line Functionality Locator</div>
+  <div class="viva-meta-bar">
+    <span><strong>Course:</strong> Web Engineering (23SW) CEP</span>
+    <span><strong>Framework:</strong> Spring Boot 3.5.7 | Java 21 LTS</span>
+    <span><strong>Test Status:</strong> 389/389 Passed (100%)</span>
+  </div>
+</div>
+
+<!-- FAST IDE NAVIGATION SHORTCUTS -->
+<div class="ide-shortcuts-box">
+  <strong>⚡ Instant IDE Code Search Pro-Tip:</strong>
+  In <strong>IntelliJ IDEA</strong>, press <kbd>Ctrl + Shift + N</kbd> (Search File), type <code>ClassName:LineNumber</code> (e.g. <code>SecurityConfig:78</code>) and hit Enter. The cursor will jump directly to the exact line!
+  In <strong>VS Code</strong>, press <kbd>Ctrl + P</kbd>, type <code>ClassName:LineNumber</code> and hit Enter.
+</div>
+
+<h2 class="section-header">1. Quick-Lookup Master Index Table (28 Core Functions)</h2>
+<p style="font-size: 8.5pt; color: #4a5568; margin-bottom: 8px;">
+Use this table to find the exact class and line number in under 2 seconds when requested by an examiner:
+</p>
+
+<table class="lookup-table">
+  <thead>
+    <tr>
+      <th style="width: 28%;">Functionality / Feature</th>
+      <th style="width: 32%;">Class Name & Relative Path</th>
+      <th style="width: 25%;">Method / Identifier</th>
+      <th style="width: 15%;">Line Range</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. BCrypt Password Encoder</strong></td>
+      <td><span class="class-pill">SecurityConfig.java</span> (config)</td>
+      <td><code>passwordEncoder()</code></td>
+      <td><span class="line-badge">Line 125–128</span></td>
+    </tr>
+    <tr>
+      <td><strong>2. Role-Based URL Authorization</strong></td>
+      <td><span class="class-pill">SecurityConfig.java</span> (config)</td>
+      <td><code>securityFilterChain(...)</code></td>
+      <td><span class="line-badge">Line 57–120</span></td>
+    </tr>
+    <tr>
+      <td><strong>3. Post-Login Role Routing</strong></td>
+      <td><span class="class-pill">RoleBasedSuccessHandler.java</span> (config)</td>
+      <td><code>onAuthenticationSuccess(...)</code></td>
+      <td><span class="line-badge">Line 41–65</span></td>
+    </tr>
+    <tr>
+      <td><strong>4. Admin Forced Password Change</strong></td>
+      <td><span class="class-pill">AdminPasswordChangeInterceptor.java</span></td>
+      <td><code>preHandle(...)</code></td>
+      <td><span class="line-badge">Line 25–48</span></td>
+    </tr>
+    <tr>
+      <td><strong>5. UserDetails Authentication</strong></td>
+      <td><span class="class-pill">CustomUserDetailsService.java</span> (auth)</td>
+      <td><code>loadUserByUsername(...)</code></td>
+      <td><span class="line-badge">Line 35–58</span></td>
+    </tr>
+    <tr>
+      <td><strong>6. Donor Registration Logic</strong></td>
+      <td><span class="class-pill">AuthService.java</span> (auth)</td>
+      <td><code>registerDonor(...)</code></td>
+      <td><span class="line-badge">Line 55–102</span></td>
+    </tr>
+    <tr>
+      <td><strong>7. AuditLog Entity & Table Indexes</strong></td>
+      <td><span class="class-pill">AuditLog.java</span> (audit.entity)</td>
+      <td><code>@Table(name="audit_logs")</code></td>
+      <td><span class="line-badge">Line 22–32</span></td>
+    </tr>
+    <tr>
+      <td><strong>8. Audit JOIN FETCH (N+1 Solution)</strong></td>
+      <td><span class="class-pill">AuditLogRepository.java</span> (audit.repo)</td>
+      <td><code>searchAndFilter(...)</code></td>
+      <td><span class="line-badge">Line 48–65</span></td>
+    </tr>
+    <tr>
+      <td><strong>9. Audit Log Search Service</strong></td>
+      <td><span class="class-pill">AdminAuditLogService.java</span> (admin.service)</td>
+      <td><code>searchAuditLogs(...)</code></td>
+      <td><span class="line-badge">Line 24–28</span></td>
+    </tr>
+    <tr>
+      <td><strong>10. Audit Log Pagination Controller</strong></td>
+      <td><span class="class-pill">AdminAuditLogController.java</span> (admin.ctrl)</td>
+      <td><code>viewAuditLogs(...)</code></td>
+      <td><span class="line-badge">Line 28–48</span></td>
+    </tr>
+    <tr>
+      <td><strong>11. 60-Sec Auto-Expiry Scheduler</strong></td>
+      <td><span class="class-pill">BloodRequestAutoExpiryScheduler.java</span></td>
+      <td><code>sweepExpiredBloodRequests()</code></td>
+      <td><span class="line-badge">Line 41–75</span></td>
+    </tr>
+    <tr>
+      <td><strong>12. Blood Request Lifecycle Creation</strong></td>
+      <td><span class="class-pill">HospitalBloodRequestService.java</span></td>
+      <td><code>createRequest(...)</code></td>
+      <td><span class="line-badge">Line 70–115</span></td>
+    </tr>
+    <tr>
+      <td><strong>13. Pessimistic Write Lock Query</strong></td>
+      <td><span class="class-pill">BloodRequestRepository.java</span></td>
+      <td><code>findByStatusInAndRequiredBy...</code></td>
+      <td><span class="line-badge">Line 124–130</span></td>
+    </tr>
+    <tr>
+      <td><strong>14. ABO/Rh Compatibility Matrix</strong></td>
+      <td><span class="class-pill">BloodCompatibilityService.java</span></td>
+      <td><code>static { ... EnumMap / EnumSet }</code></td>
+      <td><span class="line-badge">Line 40–66</span></td>
+    </tr>
+    <tr>
+      <td><strong>15. Compatibility Check Method</strong></td>
+      <td><span class="class-pill">BloodCompatibilityService.java</span></td>
+      <td><code>isCompatible(...)</code></td>
+      <td><span class="line-badge">Line 75–84</span></td>
+    </tr>
+    <tr>
+      <td><strong>16. Geo-Matching & Ranking Engine</strong></td>
+      <td><span class="class-pill">DonorMatchingService.java</span></td>
+      <td><code>findAndSaveMatchesForRequest(...)</code></td>
+      <td><span class="line-badge">Line 72–165</span></td>
+    </tr>
+    <tr>
+      <td><strong>17. Candidate Scoring & 5 Filters</strong></td>
+      <td><span class="class-pill">DonorMatchingService.java</span></td>
+      <td><code>calculateScore(...)</code></td>
+      <td><span class="line-badge">Line 124–159</span></td>
+    </tr>
+    <tr>
+      <td><strong>18. 56-Day Cooldown & Eligibility</strong></td>
+      <td><span class="class-pill">DonorEligibilityService.java</span></td>
+      <td><code>evaluateEligibility(...)</code></td>
+      <td><span class="line-badge">Line 56–115</span></td>
+    </tr>
+    <tr>
+      <td><strong>19. Donor Age & Weight Checks</strong></td>
+      <td><span class="class-pill">DonorEligibilityService.java</span></td>
+      <td><code>MIN_AGE (18), MIN_WEIGHT (50kg)</code></td>
+      <td><span class="line-badge">Line 66–89</span></td>
+    </tr>
+    <tr>
+      <td><strong>20. FEFO Blood Stock Issuance</strong></td>
+      <td><span class="class-pill">HospitalInventoryService.java</span></td>
+      <td><code>issueStock(...)</code></td>
+      <td><span class="line-badge">Line 164–215</span></td>
+    </tr>
+    <tr>
+      <td><strong>21. Direct Stock Intake & Shelf-Life</strong></td>
+      <td><span class="class-pill">HospitalInventoryService.java</span></td>
+      <td><code>addDirectStock(...)</code></td>
+      <td><span class="line-badge">Line 130–162</span></td>
+    </tr>
+    <tr>
+      <td><strong>22. Completed Donation Registry</strong></td>
+      <td><span class="class-pill">HospitalDonationService.java</span></td>
+      <td><code>recordDonation(...)</code></td>
+      <td><span class="line-badge">Line 83–125</span></td>
+    </tr>
+    <tr>
+      <td><strong>23. Chat Messaging & IDOR Defense</strong></td>
+      <td><span class="class-pill">MessagingService.java</span></td>
+      <td><code>getConversationByIdAndVerify...</code></td>
+      <td><span class="line-badge">Line 115–129</span></td>
+    </tr>
+    <tr>
+      <td><strong>24. In-App Notification Dispatch</strong></td>
+      <td><span class="class-pill">NotificationService.java</span></td>
+      <td><code>createNotification(...)</code></td>
+      <td><span class="line-badge">Line 101–125</span></td>
+    </tr>
+    <tr>
+      <td><strong>25. Milestone Badges (Bronze/Silver/Gold)</strong></td>
+      <td><span class="class-pill">DonationBadgeService.java</span></td>
+      <td><code>getBadgeProfileForDonor(...)</code></td>
+      <td><span class="line-badge">Line 28–65</span></td>
+    </tr>
+    <tr>
+      <td><strong>26. Cascading Dropdowns REST API</strong></td>
+      <td><span class="class-pill">LocationController.java</span></td>
+      <td><code>getCitiesByProvince(...)</code></td>
+      <td><span class="line-badge">Line 53–68</span></td>
+    </tr>
+    <tr>
+      <td><strong>27. Donor Phone Privacy Masking</strong></td>
+      <td><span class="class-pill">PhoneMaskingUtil.java</span></td>
+      <td><code>maskPhoneNumber(...)</code></td>
+      <td><span class="line-badge">Line 21–40</span></td>
+    </tr>
+    <tr>
+      <td><strong>28. Binary Magic Bytes Validation</strong></td>
+      <td><span class="class-pill">FileUploadService.java</span></td>
+      <td><code>uploadDonorPhoto(...)</code></td>
+      <td><span class="line-badge">Line 60–107</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- CHAPTER 2: DETAILED DRILL-DOWN -->
+<div class="page-break"></div>
+<h2 class="section-header">2. Detailed Functional Drill-Down & Code Snips</h2>
+
+<!-- 1. SECURITY -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">1. Security Filter Chain & URL Permissions</div>
+    <div class="card-badge">Security</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/config/SecurityConfig.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 57–120</span></div>
+    </div>
+    <div class="code-snippet">@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(auth -&gt; auth
+        .requestMatchers("/", "/about", "/login/**", "/register/**", "/css/**", "/js/**").permitAll()
+        .requestMatchers("/donor/**").hasRole("DONOR")
+        .requestMatchers("/hospital/**").hasRole("HOSPITAL")
+        .requestMatchers("/admin/**").hasRole("ADMIN")
+        .anyRequest().authenticated()
+    );
+    return http.build();
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "We configure URL-level role enforcement via Spring Security 6. <code>/donor/**</code> is restricted to <code>ROLE_DONOR</code>, <code>/hospital/**</code> to <code>ROLE_HOSPITAL</code>, and <code>/admin/**</code> to <code>ROLE_ADMIN</code>, preventing cross-role privilege escalation."
+    </div>
+  </div>
+</div>
+
+<!-- 2. AUDIT LOG JOIN FETCH -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">2. Audit Log Search Query Solving N+1 Problem</div>
+    <div class="card-badge">Audit / Logs</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/audit/repository/AuditLogRepository.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 48–65</span></div>
+    </div>
+    <div class="code-snippet">@Query(
+    value = "SELECT a FROM AuditLog a LEFT JOIN FETCH a.actor u " +
+            "WHERE (:query IS NULL OR :query = '' " +
+            "       OR LOWER(a.description) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "       OR LOWER(a.entityId) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "       OR (u IS NOT NULL AND (LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))))) " +
+            "  AND (:action IS NULL OR a.action = :action) " +
+            "ORDER BY a.createdAt DESC"
+)
+Page&lt;AuditLog&gt; searchAndFilter(String query, AuditAction action, String entityName, Pageable pageable);</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "We use <code>LEFT JOIN FETCH a.actor u</code> in our JPQL query. This solves the classic Hibernate N+1 query problem by loading both the audit log and the associated actor entity in a single query."
+    </div>
+  </div>
+</div>
+
+<!-- 3. AUTO EXPIRY SCHEDULER -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">3. 60-Second Background Auto-Expiry Scheduler</div>
+    <div class="card-badge">Blood Request</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/bloodrequest/service/BloodRequestAutoExpiryScheduler.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 41–75</span></div>
+    </div>
+    <div class="code-snippet">@Scheduled(fixedRate = 60000) // Runs every 60 seconds
+@Transactional
+public void sweepExpiredBloodRequests() {
+    LocalDateTime now = LocalDateTime.now();
+    List&lt;BloodRequest&gt; expiredRequests = bloodRequestRepository
+            .findByStatusInAndRequiredByBefore(candidateStatuses, now);
+
+    for (BloodRequest req : expiredRequests) {
+        req.setStatus(RequestStatus.EXPIRED);
+        bloodRequestRepository.save(req);
+        requestMatchRepository.cancelPendingMatchesForRequest(req.getId());
+    }
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "The <code>@Scheduled(fixedRate = 60000)</code> annotation executes an automated sweep every minute. If any request passes its <code>requiredBy</code> deadline, it is marked <code>EXPIRED</code> and pending match invites are cancelled."
+    </div>
+  </div>
+</div>
+
+<!-- 4. ABO COMPATIBILITY -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">4. ABO/Rh Blood Transfusion Compatibility Matrix</div>
+    <div class="card-badge">Matching Engine</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/matching/service/BloodCompatibilityService.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 40–66 (Matrix), Line 75–84 (isCompatible)</span></div>
+    </div>
+    <div class="code-snippet">private static final Map&lt;BloodGroup, Set&lt;BloodGroup&gt;&gt; RECIPIENT_TO_DONORS = new EnumMap&lt;&gt;(BloodGroup.class);
+
+static {
+    RECIPIENT_TO_DONORS.put(BloodGroup.O_NEGATIVE,  EnumSet.of(BloodGroup.O_NEGATIVE));
+    RECIPIENT_TO_DONORS.put(BloodGroup.O_POSITIVE,  EnumSet.of(BloodGroup.O_NEGATIVE, BloodGroup.O_POSITIVE));
+    // ... complete clinical rules ...
+    RECIPIENT_TO_DONORS.put(BloodGroup.AB_POSITIVE, EnumSet.allOf(BloodGroup.class)); // Universal recipient
+}
+
+public boolean isCompatible(BloodGroup donorGroup, BloodGroup recipientGroup) {
+    Set&lt;BloodGroup&gt; compatible = RECIPIENT_TO_DONORS.get(recipientGroup);
+    return compatible != null &amp;&amp; compatible.contains(donorGroup);
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "We use Java's <code>EnumMap</code> and <code>EnumSet</code>. Because enums in Java map to bitmasks and contiguous arrays, compatibility evaluations run in <strong>O(1) constant time with zero heap allocations</strong>."
+    </div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- 5. 56-DAY RULE -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">5. 56-Day Cooldown Rule & Medical Eligibility</div>
+    <div class="card-badge">Donor Module</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/donor/service/DonorEligibilityService.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 56–115 (Age: 66, Weight: 77, Cooldown: 92)</span></div>
+    </div>
+    <div class="code-snippet">// 1. Age Evaluation (18 to 65 years)
+int age = Period.between(donor.getDateOfBirth(), today).getYears();
+boolean ageEligible = age &gt;= MIN_AGE &amp;&amp; age &lt;= MAX_AGE;
+
+// 2. Weight Evaluation (&gt;= 50 kg)
+boolean weightEligible = donor.getWeight().compareTo(MIN_WEIGHT) &gt;= 0;
+
+// 3. 56-Day Donation Interval Cooldown
+if (donor.getLastDonationDate() != null) {
+    long daysSinceLast = ChronoUnit.DAYS.between(donor.getLastDonationDate(), today);
+    if (daysSinceLast &lt; activeCooldownDays) {
+        cooldownEligible = false;
+        long remaining = activeCooldownDays - daysSinceLast;
+    }
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "The 56-day rule is enforced by comparing <code>ChronoUnit.DAYS.between(lastDonationDate, today)</code> against the standard 56-day threshold, preventing donor iron depletion and premature blood drawing."
+    </div>
+  </div>
+</div>
+
+<!-- 6. FEFO INVENTORY -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">6. First-Expired, First-Out (FEFO) Stock Issuance</div>
+    <div class="card-badge">Inventory</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/hospital/service/HospitalInventoryService.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 164–215</span></div>
+    </div>
+    <div class="code-snippet">// Fetch batches ordered by expiryDate ASC (FEFO: Earliest Expiry First)
+List&lt;BloodStockEntry&gt; batches = bloodStockEntryRepository
+        .findAvailableBatchesOrderByExpiryAsc(hospital.getId(), bloodGroup, today);
+
+int remainingUnits = unitsToIssue;
+for (BloodStockEntry batch : batches) {
+    if (remainingUnits &lt;= 0) break;
+    int batchUnits = batch.getUnits();
+    if (batchUnits &lt;= remainingUnits) {
+        batch.setStatus(StockItemStatus.ISSUED); // Consume full batch
+        remainingUnits -= batchUnits;
+    } else {
+        batch.setUnits(batchUnits - remainingUnits); // Split batch
+        remainingUnits = 0;
+    }
+    bloodStockEntryRepository.save(batch);
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "FEFO queries blood stock batches with <code>ORDER BY expiryDate ASC</code>, deducting units from the batch nearest to its expiration date. This minimizes unit wastage."
+    </div>
+  </div>
+</div>
+
+<!-- 7. IDOR DEFENSE -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">7. IDOR (Insecure Direct Object Reference) Defense</div>
+    <div class="card-badge">Messaging</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/messaging/service/MessagingService.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 115–129</span></div>
+    </div>
+    <div class="code-snippet">boolean isDonor = currentUser.getId().equals(conversation.getDonor().getUser().getId());
+boolean isHospital = currentUser.getId().equals(conversation.getHospital().getUser().getId());
+boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+
+if (!isDonor &amp;&amp; !isHospital &amp;&amp; !isAdmin) {
+    log.warn("IDOR attempt: User {} attempted to access conversation ID {}", userEmail, conversationId);
+    throw new AccessDeniedException("Access Denied: You are not authorized to view this conversation.");
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "We prevent IDOR attacks by asserting that the authenticated principal's ID matches either the donor's or hospital's user ID associated with the conversation before granting access."
+    </div>
+  </div>
+</div>
+
+<!-- 8. MAGIC BYTES -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">8. Deep Binary Magic Bytes File Upload Validation</div>
+    <div class="card-badge">Utilities & Security</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/common/service/FileUploadService.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 60–107 (Headers: Lines 30–33)</span></div>
+    </div>
+    <div class="code-snippet">private static final byte[] JPEG_MAGIC = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
+private static final byte[] PNG_MAGIC  = new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, (byte) 0x0D, (byte) 0x0A, (byte) 0x1A, (byte) 0x0A};
+
+// Inspect stream header bytes
+byte[] header = new byte[8];
+is.read(header);
+boolean isJpeg = header[0] == JPEG_MAGIC[0] &amp;&amp; header[1] == JPEG_MAGIC[1] &amp;&amp; header[2] == JPEG_MAGIC[2];
+boolean isPng  = Arrays.equals(header, PNG_MAGIC);
+
+if (!isJpeg &amp;&amp; !isPng) {
+    throw new IllegalArgumentException("File signature verification failed: not a valid image.");
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "Renaming an executable to <code>.jpg</code> does not fool our system. We inspect the first 3 to 8 binary header bytes of the stream (magic bytes) to guarantee the file is an authentic JPEG or PNG image."
+    </div>
+  </div>
+</div>
+
+<!-- 9. PHONE MASKING -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">9. Voluntary Donor Phone Number Masking</div>
+    <div class="card-badge">Privacy</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>File:</strong> <code>src/main/java/com/donornexa/common/util/PhoneMaskingUtil.java</code></div>
+      <div><strong>Exact Lines:</strong> <span class="line-badge">Line 21–40</span></div>
+    </div>
+    <div class="code-snippet">public static String maskPhoneNumber(String phoneNumber) {
+    if (phoneNumber == null || phoneNumber.isBlank()) return "***-***-****";
+    String trimmed = phoneNumber.trim();
+    int length = trimmed.length();
+    int prefixLen = Math.min(6, length - 4);
+    int suffixLen = 4;
+    return trimmed.substring(0, prefixLen) + "-***" + trimmed.substring(length - suffixLen);
+    // Produces: +92-300-***1001
+}</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "Donor phone numbers are masked in all standard views. Only an authenticated hospital with an accepted emergency match can trigger an unmasked reveal, which is logged to the immutable audit trail."
+    </div>
+  </div>
+</div>
+
+<!-- 10. DATABASE VIEWS & TRIGGERS -->
+<div class="function-card">
+  <div class="card-top">
+    <div class="card-title">10. Database Stored Views & Automated Triggers</div>
+    <div class="card-badge">Database 3NF</div>
+  </div>
+  <div class="card-body">
+    <div class="nav-info-grid">
+      <div><strong>Files:</strong> <code>sql/views.sql</code> (Line 9–25) | <code>sql/triggers.sql</code> (Line 17–35)</div>
+      <div><strong>Schema:</strong> <code>sql/schema.sql</code> (14 Normalized 3NF Tables)</div>
+    </div>
+    <div class="code-snippet">-- Trigger automatically updates donor's last_donation_date when a donation is completed
+CREATE TRIGGER trg_after_donation_insert_update_donor
+AFTER INSERT ON donations
+FOR EACH ROW
+BEGIN
+    IF NEW.donation_status = 'COMPLETED' THEN
+        UPDATE donors 
+        SET last_donation_date = DATE(NEW.donation_date)
+        WHERE id = NEW.donor_id;
+    END IF;
+END;</div>
+    <div class="viva-tip">
+      <strong>Viva Answer:</strong> "Data integrity is protected at both application and database layers. The MySQL trigger <code>trg_after_donation_insert_update_donor</code> guarantees that a donor's <code>last_donation_date</code> updates automatically upon completed donation."
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+`;
+
+const htmlPath = path.join(__dirname, 'DonorNexa_Viva_Code_Navigator.html');
+const pdfPath = path.join(__dirname, 'DonorNexa_Viva_Code_Navigator.pdf');
+
+fs.writeFileSync(htmlPath, htmlContent, 'utf8');
+console.log('Generated HTML file at: ' + htmlPath);
+
+const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+console.log('Rendering PDF using Microsoft Edge...');
+
+try {
+  const cmd = `"${edgePath}" --headless --disable-gpu --print-to-pdf="${pdfPath}" --no-pdf-header-footer "${htmlPath}"`;
+  execSync(cmd, { stdio: 'inherit' });
+  console.log('SUCCESS: PDF successfully generated at: ' + pdfPath);
+  const stats = fs.statSync(pdfPath);
+  console.log('PDF File Size: ' + stats.size + ' bytes');
+} catch (err) {
+  console.error('Error generating PDF:', err);
+  process.exit(1);
+}

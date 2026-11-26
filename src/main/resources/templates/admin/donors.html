@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Donor Management | DonorNexa Admin</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+ <!-- Desktop Persistent Sidebar -->
+ <div class="d-none d-lg-block">
+ <div th:replace="~{fragments/sidebar :: sidebar('donors')}"></div>
+ </div>
+ <!-- Mobile Offcanvas Sidebar Drawer -->
+ <div th:replace="~{fragments/header :: mobileSidebar('donors')}"></div>
+
+ <!-- Main Content -->
+ <div class="dn-main-content">
+ <div th:replace="~{fragments/header :: topbar('Donor Management', 'Donor Directory & Identity Verification Queue')}"></div>
+
+ <main class="container-fluid px-4 py-4 flex-grow-1">
+
+ <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+ <div>
+ <h2 class="fw-bold mb-1">Donor Directory & Verification Queue</h2>
+ <p class="text-muted mb-0">Search registered volunteer donors, review medical & profile information, and process verifications.</p>
+ </div>
+ <div>
+ <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">← Back to Dashboard</a>
+ </div>
+ </div>
+
+ <!-- Quick Filter Pills -->
+ <div class="d-flex flex-wrap gap-2 mb-3">
+ <a th:href="@{/admin/donors}"
+ class="btn btn-sm"
+ th:classappend="${selectedVerificationStatus == null && selectedAccountStatus == null && selectedBloodGroup == null && (query == null || query.isBlank())} ? 'btn-danger' : 'btn-outline-secondary'">
+ All Donors (<span th:text="${totalCount}">0</span>)
+ </a>
+ <a th:href="@{/admin/donors(verificationStatus='PENDING')}"
+ class="btn btn-sm"
+ th:classappend="${selectedVerificationStatus != null && selectedVerificationStatus.name() == 'PENDING'} ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'">
+ Pending Review (<span th:text="${pendingCount}">0</span>)
+ </a>
+ <a th:href="@{/admin/donors(verificationStatus='VERIFIED')}"
+ class="btn btn-sm"
+ th:classappend="${selectedVerificationStatus != null && selectedVerificationStatus.name() == 'VERIFIED'} ? 'btn-success' : 'btn-outline-success'">
+ &#10004; Verified (<span th:text="${verifiedCount}">0</span>)
+ </a>
+ <a th:href="@{/admin/donors(verificationStatus='REJECTED')}"
+ class="btn btn-sm"
+ th:classappend="${selectedVerificationStatus != null && selectedVerificationStatus.name() == 'REJECTED'} ? 'btn-danger' : 'btn-outline-danger'">
+ &#10008; Rejected
+ </a>
+ <a th:href="@{/admin/donors(accountStatus='SUSPENDED')}"
+ class="btn btn-sm"
+ th:classappend="${selectedAccountStatus != null && selectedAccountStatus.name() == 'SUSPENDED'} ? 'btn-dark' : 'btn-outline-dark'">
+ Suspended
+ </a>
+ </div>
+
+ <!-- Filter & Search Bar -->
+ <div class="filter-box mb-4">
+ <form th:action="@{/admin/donors}" method="get" class="row g-2 align-items-end">
+ <div class="col-md-4">
+ <label class="form-label small fw-semibold text-muted mb-1">Search Donors</label>
+ <input type="text" name="query" class="form-control form-control-sm"
+ placeholder="Search by donor name, email or phone..."
+ th:value="${query}">
+ </div>
+ <div class="col-md-2 col-sm-6">
+ <label class="form-label small fw-semibold text-muted mb-1">Blood Group</label>
+ <select name="bloodGroup" class="form-select form-select-sm">
+ <option value="">-- All Blood Groups --</option>
+ <option th:each="bg : ${bloodGroups}"
+ th:value="${bg.name()}"
+ th:text="${bg.name()}"
+ th:selected="${selectedBloodGroup != null && selectedBloodGroup == bg}">
+ </option>
+ </select>
+ </div>
+ <div class="col-md-2 col-sm-6">
+ <label class="form-label small fw-semibold text-muted mb-1">Verification Status</label>
+ <select name="verificationStatus" class="form-select form-select-sm">
+ <option value="">-- All Statuses --</option>
+ <option th:each="st : ${verificationStatuses}"
+ th:value="${st.name()}"
+ th:text="${st.displayName}"
+ th:selected="${selectedVerificationStatus != null && selectedVerificationStatus == st}">
+ </option>
+ </select>
+ </div>
+ <div class="col-md-2 col-sm-6">
+ <label class="form-label small fw-semibold text-muted mb-1">Account Status</label>
+ <select name="accountStatus" class="form-select form-select-sm">
+ <option value="">-- All Accounts --</option>
+ <option th:each="acc : ${accountStatuses}"
+ th:value="${acc.name()}"
+ th:text="${acc.name()}"
+ th:selected="${selectedAccountStatus != null && selectedAccountStatus == acc}">
+ </option>
+ </select>
+ </div>
+ <div class="col-md-2 d-flex gap-2">
+ <button type="submit" class="btn btn-danger btn-sm flex-grow-1">Filter</button>
+ <a th:href="@{/admin/donors}" class="btn btn-outline-secondary btn-sm" title="Reset Filters">Reset</a>
+ </div>
+ </form>
+ </div>
+
+ <!-- Donors Table -->
+ <div class="card border-0 shadow-sm">
+ <div class="card-body p-0">
+ <div class="table-responsive">
+ <table class="table table-hover align-middle mb-0">
+ <thead class="table-light">
+ <tr>
+ <th>Donor Name</th>
+ <th>Blood Group</th>
+ <th>Contact Info</th>
+ <th>Location</th>
+ <th>Availability</th>
+ <th>Verification</th>
+ <th>Account Status</th>
+ <th class="text-end">Actions</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr th:if="${donorPage.totalElements == 0}">
+ <td colspan="8" class="text-center py-5 text-muted">
+ <div style="font-size: 2.5rem;"></div>
+ <h6 class="mt-2 fw-bold">No donors match your search or filter criteria.</h6>
+ <p class="small mb-0">Try clearing filters or adjusting your search keywords.</p>
+ </td>
+ </tr>
+ <tr th:each="donor : ${donorPage.content}">
+ <td>
+ <div class="fw-bold" th:text="${donor.user.fullName}">Usman Tariq</div>
+ <small class="text-muted" th:text="${donor.gender}">MALE</small>
+ </td>
+ <td>
+ <span class="badge bg-danger fs-6" th:text="${donor.bloodGroup}">O_POSITIVE</span>
+ </td>
+ <td>
+ <div th:text="${donor.user.email}">donor@example.com</div>
+ <small class="text-muted" th:text="${donor.user.phoneNumber}">+92 300 1234567</small>
+ </td>
+ <td>
+ <span th:text="${donor.city.name}">Lahore</span>,
+ <small class="text-muted" th:text="${donor.province.name}">Punjab</small>
+ </td>
+ <td>
+ <span class="badge"
+ th:classappend="${donor.availability.name() == 'AVAILABLE'} ? 'bg-success' : 'bg-secondary'"
+ th:text="${donor.availability}">
+ AVAILABLE
+ </span>
+ </td>
+ <td>
+ <span th:class="${donor.verificationStatus.badgeClass}"
+ th:text="${donor.verificationStatus.displayName}">
+ Pending Verification
+ </span>
+ </td>
+ <td>
+ <span class="badge"
+ th:classappend="${donor.user.accountStatus.name() == 'ACTIVE'} ? 'bg-success' : (${donor.user.accountStatus.name() == 'SUSPENDED'} ? 'bg-dark' : 'bg-secondary')"
+ th:text="${donor.user.accountStatus}">
+ ACTIVE
+ </span>
+ </td>
+ <td class="text-end">
+ <a th:href="@{/admin/donors/{id}(id=${donor.id})}"
+ class="btn btn-outline-danger btn-sm fw-semibold">
+ Inspect & Review →
+ </a>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+
+ <!-- Pagination -->
+ <div th:if="${donorPage.totalPages > 1}" class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+ <small class="text-muted">
+ Showing page <span th:text="${donorPage.number + 1}">1</span> of <span th:text="${donorPage.totalPages}">1</span>
+ (<span th:text="${donorPage.totalElements}">0</span> total donors)
+ </small>
+ <nav>
+ <ul class="pagination pagination-sm mb-0">
+ <li class="page-item" th:classappend="${donorPage.first} ? 'disabled' : ''">
+ <a class="page-link"
+ th:href="@{/admin/donors(page=${donorPage.number - 1}, query=${query}, verificationStatus=${selectedVerificationStatus != null ? selectedVerificationStatus.name() : ''}, bloodGroup=${selectedBloodGroup != null ? selectedBloodGroup.name() : ''}, accountStatus=${selectedAccountStatus != null ? selectedAccountStatus.name() : ''})}">
+ Previous
+ </a>
+ </li>
+ <li class="page-item"
+ th:each="i : ${#numbers.sequence(0, donorPage.totalPages - 1)}"
+ th:classappend="${i == donorPage.number} ? 'active' : ''">
+ <a class="page-link"
+ th:href="@{/admin/donors(page=${i}, query=${query}, verificationStatus=${selectedVerificationStatus != null ? selectedVerificationStatus.name() : ''}, bloodGroup=${selectedBloodGroup != null ? selectedBloodGroup.name() : ''}, accountStatus=${selectedAccountStatus != null ? selectedAccountStatus.name() : ''})}"
+ th:text="${i + 1}">
+ 1
+ </a>
+ </li>
+ <li class="page-item" th:classappend="${donorPage.last} ? 'disabled' : ''">
+ <a class="page-link"
+ th:href="@{/admin/donors(page=${donorPage.number + 1}, query=${query}, verificationStatus=${selectedVerificationStatus != null ? selectedVerificationStatus.name() : ''}, bloodGroup=${selectedBloodGroup != null ? selectedBloodGroup.name() : ''}, accountStatus=${selectedAccountStatus != null ? selectedAccountStatus.name() : ''})}">
+ Next
+ </a>
+ </li>
+ </ul>
+ </nav>
+ </div>
+ </div>
+
+ </main>
+
+ <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+ <div class="container-fluid px-4">
+ DonorNexa &mdash; University CEP Project &copy; 2026
+ </div>
+ </footer>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

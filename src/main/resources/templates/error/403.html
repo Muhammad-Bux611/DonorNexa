@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Access Denied | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card shadow-sm border-0 text-center p-4 p-md-5" style="max-width: 520px; border-radius: 12px;">
+        <div class="mb-3">
+            <span class="badge bg-danger-subtle text-danger fs-1 p-3 rounded-circle">403</span>
+        </div>
+        <h2 class="fw-bold text-dark mb-2">Access Denied</h2>
+        <p class="text-muted small mb-4">
+            You do not have permission to access this protected DonorNexa resource. Your account role does not match the required authorization level for this administrative or institutional route.
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+            <a th:href="@{/}" class="btn btn-danger btn-sm px-4 fw-semibold">Return Home</a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm px-3">Go Back</a>
+        </div>
+    </div>
+</body>
+</html>

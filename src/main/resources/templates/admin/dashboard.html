@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Admin Dashboard | DonorNexa</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+ <!-- Desktop Persistent Sidebar -->
+ <div class="d-none d-lg-block">
+ <div th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></div>
+ </div>
+ <!-- Mobile Offcanvas Sidebar Drawer -->
+ <div th:replace="~{fragments/header :: mobileSidebar('dashboard')}"></div>
+
+ <!-- Main Content -->
+ <div class="dn-main-content">
+ <div th:replace="~{fragments/header :: topbar('Platform Administration', 'System Overview & Control Center')}"></div>
+
+ <main class="container-fluid px-4 py-4 flex-grow-1">
+
+ <div class="dashboard-header mb-4">
+ <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+ <div>
+ <h1 class="h2 fw-bold mb-1 text-white">Platform Administration</h1>
+ <p class="mb-0 text-white-50">Comprehensive control over users, verification queues, clinical requests, donations, and audit security.</p>
+ </div>
+ <div class="d-flex flex-wrap gap-2">
+ <a th:href="@{/admin/verification}" class="btn btn-warning btn-sm fw-bold">
+ Verification Hub
+ </a>
+ <a th:href="@{/admin/users}" class="btn btn-outline-light btn-sm fw-semibold">
+ Manage Users
+ </a>
+ <a th:href="@{/admin/reports}" class="btn btn-light btn-sm fw-semibold text-danger">
+ View Analytics
+ </a>
+ </div>
+ </div>
+ </div>
+
+ <!-- Verification Alerts -->
+ <div th:if="${pendingDonorVerification > 0 or pendingHospitalVerification > 0}" class="eligibility-box warning mb-4">
+ <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+ <div>
+ <h5 class="fw-bold mb-1 text-dark">
+ Verification Action Required:
+ <span th:text="${pendingDonorVerification}">0</span> Donor(s) &amp;
+ <span th:text="${pendingHospitalVerification}">0</span> Hospital(s) Pending
+ </h5>
+ <p class="mb-0 small text-muted">
+ New volunteer donors and healthcare facilities are awaiting administrative credential verification.
+ </p>
+ </div>
+ <a th:href="@{/admin/verification}" class="btn btn-warning btn-sm fw-bold">
+ Open Verification Hub →
+ </a>
+ </div>
+ </div>
+
+ <!-- Blood Request Approval Action Banner -->
+ <div th:if="${pendingApprovalRequests != null and not #lists.isEmpty(pendingApprovalRequests)}" class="card border-0 shadow-sm mb-4 border-start border-4 border-danger">
+ <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+ <div>
+ <h5 class="fw-bold mb-0 text-danger">&#9888; Blood Requests Awaiting Administrator Approval</h5>
+ <small class="text-muted"><span th:text="${#lists.size(pendingApprovalRequests)}">0</span> emergency request(s) submitted by hospitals requiring clinical authorization</small>
+ </div>
+ <a th:href="@{/admin/blood-requests}" class="btn btn-outline-danger btn-sm">All Requests</a>
+ </div>
+ <div class="card-body p-0">
+ <div class="table-responsive">
+ <table class="table table-hover align-middle mb-0">
+ <thead class="table-light small">
+ <tr>
+ <th>Request ID</th>
+ <th>Hospital</th>
+ <th>Blood Group</th>
+ <th>Units</th>
+ <th>Urgency</th>
+ <th>Submitted</th>
+ <th>Action</th>
+ </tr>
+ </thead>
+ <tbody class="small">
+ <tr th:each="r : ${pendingApprovalRequests}">
+ <td class="fw-bold">#<span th:text="${r.id}">1</span></td>
+ <td class="fw-semibold text-dark" th:text="${r.hospital.hospitalName}">Hospital Name</td>
+ <td>
+ <span class="badge bg-danger fs-6" th:text="${r.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+ </td>
+ <td class="fw-bold" th:text="${r.unitsRequired} + ' Unit(s)'">2 Units</td>
+ <td>
+ <span th:if="${r.urgency.name() == 'CRITICAL'}" class="badge bg-danger">Critical</span>
+ <span th:if="${r.urgency.name() == 'HIGH'}" class="badge bg-warning text-dark">High</span>
+ <span th:if="${r.urgency.name() == 'MEDIUM'}" class="badge bg-info text-dark">Medium</span>
+ <span th:if="${r.urgency.name() == 'LOW'}" class="badge bg-secondary">Low</span>
+ </td>
+ <td class="text-muted" th:text="${#temporals.format(r.createdAt, 'dd MMM, HH:mm')}">Date</td>
+ <td>
+ <div class="d-flex gap-1">
+ <form th:action="@{/admin/blood-requests/{id}/approve(id=${r.id})}" method="post" class="d-inline">
+ <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+ <input type="hidden" name="adminNotes" value="Approved by platform administrator for urgent matching.">
+ <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this blood request? Donor matching will be triggered automatically.');">Approve</button>
+ </form>
+ <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="collapse" th:attr="data-bs-target='#rejectCollapse-' + ${r.id}">
+ Reject
+ </button>
+ <a th:href="@{/admin/blood-requests/{id}(id=${r.id})}" class="btn btn-outline-secondary btn-sm">Inspect</a>
+ </div>
+ <div class="collapse mt-2" th:id="'rejectCollapse-' + ${r.id}">
+ <form th:action="@{/admin/blood-requests/{id}/reject(id=${r.id})}" method="post" class="p-2 border rounded bg-light">
+ <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+ <div class="mb-2">
+ <label class="form-label small fw-bold mb-1">Rejection Reason</label>
+ <input type="text" name="rejectionReason" class="form-control form-control-sm" placeholder="Reason for rejection" required>
+ </div>
+ <button type="submit" class="btn btn-danger btn-sm w-100">Confirm Rejection</button>
+ </form>
+ </div>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+
+ <!-- Row 1: Core Community Metrics -->
+ <h5 class="fw-bold mb-3 text-dark">Community & User Metrics</h5>
+ <div class="row g-3 mb-4">
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">Total Registered Users</div>
+ <div class="stat-value text-dark" th:text="${totalUsers}">0</div>
+ <small class="text-muted"><a th:href="@{/admin/users}" class="text-decoration-none">View All Users →</a></small>
+ </div>
+ </div>
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">Volunteer Donors</div>
+ <div class="stat-value text-danger" th:text="${totalDonors}">0</div>
+ <small class="text-muted"><span th:text="${verifiedDonors}">0</span> verified / <span th:text="${pendingDonorVerification}">0</span> pending</small>
+ </div>
+ </div>
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">Hospitals &amp; Facilities</div>
+ <div class="stat-value text-primary" th:text="${totalHospitals}">0</div>
+ <small class="text-muted"><span th:text="${verifiedHospitals}">0</span> verified / <span th:text="${pendingHospitalVerification}">0</span> pending</small>
+ </div>
+ </div>
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">Rejected Applications</div>
+ <div class="stat-value text-secondary" th:text="${rejectedApplications}">0</div>
+ <small class="text-muted">Applications denied with cause</small>
+ </div>
+ </div>
+ </div>
+
+ <!-- Row 2: Clinical & Operational Metrics -->
+ <h5 class="fw-bold mb-3 text-dark">Clinical &amp; Operational Coordination</h5>
+ <div class="row g-3 mb-4">
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">Total Blood Requests</div>
+ <div class="stat-value text-dark" th:text="${totalBloodRequests}">0</div>
+ <small class="text-muted"><span class="text-warning fw-bold" th:text="${pendingBloodRequests}">0</span> pending &bull; <span class="text-success fw-bold" th:text="${completedBloodRequests}">0</span> completed</small>
+ </div>
+ </div>
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">Active Urgent Requests</div>
+ <div class="stat-value text-danger" th:text="${activeBloodRequests}">0</div>
+ <small class="text-muted"><a th:href="@{/admin/blood-requests}" class="text-decoration-none">Manage Requests &rarr;</a></small>
+ </div>
+ </div>
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">Total Donations</div>
+ <div class="stat-value text-success" th:text="${totalDonations}">0</div>
+ <small class="text-muted"><span th:text="${completedDonations}">0</span> completed sessions</small>
+ </div>
+ </div>
+ <div class="col-xl-3 col-sm-6">
+ <div class="stat-card">
+ <div class="stat-label">System Notifications</div>
+ <div class="stat-value text-info" th:text="${totalNotifications}">0</div>
+ <small class="text-muted"><a th:href="@{/admin/notifications}" class="text-decoration-none">Communications Log &rarr;</a></small>
+ </div>
+ </div>
+ </div>
+
+ <!-- Row 3: Live Feeds (Recent Registrations & Recent Audit Logs) -->
+ <div class="row g-4 mb-4">
+ <!-- Recent Users -->
+ <div class="col-lg-6">
+ <div class="card border-0 shadow-sm h-100">
+ <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+ <h6 class="fw-bold mb-0 text-dark">Recent Registrations</h6>
+ <a th:href="@{/admin/users}" class="btn btn-outline-danger btn-sm">View All Users</a>
+ </div>
+ <div class="card-body p-0">
+ <div class="table-responsive">
+ <table class="table table-hover align-middle mb-0">
+ <thead class="table-light small">
+ <tr>
+ <th>Name / Email</th>
+ <th>Role</th>
+ <th>Status</th>
+ <th>Joined</th>
+ </tr>
+ </thead>
+ <tbody class="small">
+ <tr th:if="${#lists.isEmpty(recentUsers)}">
+ <td colspan="4" class="text-center py-4 text-muted">No recent registrations.</td>
+ </tr>
+ <tr th:each="u : ${recentUsers}">
+ <td>
+ <div class="fw-semibold text-dark" th:text="${u.fullName}">User Name</div>
+ <small class="text-muted" th:text="${u.email}">user@example.com</small>
+ </td>
+ <td>
+ <span class="badge"
+ th:classappend="${u.role.name() == 'ADMIN'} ? 'bg-dark' : (${u.role.name() == 'HOSPITAL'} ? 'bg-primary' : 'bg-danger')"
+ th:text="${u.role}">
+ ROLE
+ </span>
+ </td>
+ <td>
+ <span class="badge"
+ th:classappend="${u.accountStatus.name() == 'ACTIVE'} ? 'bg-success' : 'bg-secondary'"
+ th:text="${u.accountStatus}">
+ ACTIVE
+ </span>
+ </td>
+ <td class="text-muted"
+ th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'dd MMM, HH:mm') : 'N/A'}">
+ 01 Jan
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Recent Activity Logs -->
+ <div class="col-lg-6">
+ <div class="card border-0 shadow-sm h-100">
+ <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+ <h6 class="fw-bold mb-0 text-dark">Recent System Activity</h6>
+ <a th:href="@{/admin/audit-logs}" class="btn btn-outline-danger btn-sm">View Audit Logs</a>
+ </div>
+ <div class="card-body p-0">
+ <div class="table-responsive">
+ <table class="table table-hover align-middle mb-0">
+ <thead class="table-light small">
+ <tr>
+ <th>Action</th>
+ <th>Entity</th>
+ <th>Description</th>
+ <th>Timestamp</th>
+ </tr>
+ </thead>
+ <tbody class="small">
+ <tr th:if="${#lists.isEmpty(recentAuditLogs)}">
+ <td colspan="4" class="text-center py-4 text-muted">No audit activity recorded yet.</td>
+ </tr>
+ <tr th:each="a : ${recentAuditLogs}">
+ <td>
+ <span class="badge bg-secondary" th:text="${a.action}">ACTION</span>
+ </td>
+ <td>
+ <span class="fw-semibold text-dark" th:text="${a.entityName}">Entity</span>
+ </td>
+ <td>
+ <div class="text-truncate" style="max-width: 220px;" th:text="${a.description}" th:title="${a.description}">
+ Description text
+ </div>
+ </td>
+ <td class="text-muted"
+ th:text="${a.createdAt != null ? #temporals.format(a.createdAt, 'dd MMM, HH:mm') : 'N/A'}">
+ 01 Jan
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Recent Blood Requests Stream -->
+ <div class="card border-0 shadow-sm mb-4">
+ <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+ <h6 class="fw-bold mb-0 text-dark">Recent Emergency Blood Requests</h6>
+ <a th:href="@{/admin/blood-requests}" class="btn btn-outline-danger btn-sm">Manage All Blood Requests</a>
+ </div>
+ <div class="card-body p-0">
+ <div class="table-responsive">
+ <table class="table table-hover align-middle mb-0">
+ <thead class="table-light small">
+ <tr>
+ <th>Request ID</th>
+ <th>Hospital</th>
+ <th>Blood Group</th>
+ <th>Units</th>
+ <th>Urgency</th>
+ <th>Status</th>
+ <th>Location</th>
+ <th>Created</th>
+ </tr>
+ </thead>
+ <tbody class="small">
+ <tr th:if="${#lists.isEmpty(recentBloodRequests)}">
+ <td colspan="8" class="text-center py-4 text-muted">No blood requests raised yet.</td>
+ </tr>
+ <tr th:each="br : ${recentBloodRequests}">
+ <td class="fw-bold">#<span th:text="${br.id}">1</span></td>
+ <td class="fw-semibold text-dark" th:text="${br.hospital.hospitalName}">Hospital Name</td>
+ <td><span class="badge bg-danger fs-6" th:text="${br.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span></td>
+ <td th:text="${br.unitsFulfilled} + ' / ' + ${br.unitsRequired} + ' Units'">0/1</td>
+ <td><span class="badge bg-secondary" th:text="${br.urgency}">NORMAL</span></td>
+ <td><span class="badge bg-success" th:text="${br.status}">PENDING</span></td>
+ <td class="small text-muted" th:text="${br.city.name}">City</td>
+ <td class="small text-muted" th:text="${#temporals.format(br.createdAt, 'dd MMM, HH:mm')}">01 Jan</td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+
+ <!-- Administrative Navigation Quick-Cards -->
+ <h5 class="fw-bold mb-3 text-dark">Administrative Control Modules</h5>
+ <div class="row g-3">
+ <div class="col-md-4 col-sm-6">
+ <div class="feature-card h-100 d-flex flex-column justify-content-between">
+ <div>
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h6 class="fw-bold mb-0 text-dark">User Management</h6>
+ <span class="badge bg-success">Active</span>
+ </div>
+ <p class="text-muted small">Search registered users across all roles, inspect profiles, and update account standings.</p>
+ </div>
+ <a th:href="@{/admin/users}" class="btn btn-outline-danger btn-sm mt-2">Manage Users →</a>
+ </div>
+ </div>
+ <div class="col-md-4 col-sm-6">
+ <div class="feature-card h-100 d-flex flex-column justify-content-between">
+ <div>
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h6 class="fw-bold mb-0 text-dark">Verification Hub</h6>
+ <span class="badge bg-success">Active</span>
+ </div>
+ <p class="text-muted small">Review pending donor and hospital applications, execute approvals, and submit rejection reasons.</p>
+ </div>
+ <a th:href="@{/admin/verification}" class="btn btn-outline-danger btn-sm mt-2">Open Verification Hub →</a>
+ </div>
+ </div>
+ <div class="col-md-4 col-sm-6">
+ <div class="feature-card h-100 d-flex flex-column justify-content-between">
+ <div>
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h6 class="fw-bold mb-0 text-dark">Blood Requests</h6>
+ <span class="badge bg-success">Active</span>
+ </div>
+ <p class="text-muted small">Monitor hospital emergency requests, check fulfillment statuses, and manage request lifecycles.</p>
+ </div>
+ <a th:href="@{/admin/blood-requests}" class="btn btn-outline-danger btn-sm mt-2">Manage Requests →</a>
+ </div>
+ </div>
+ <div class="col-md-4 col-sm-6">
+ <div class="feature-card h-100 d-flex flex-column justify-content-between">
+ <div>
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h6 class="fw-bold mb-0 text-dark"> Donation Records</h6>
+ <span class="badge bg-success">Active</span>
+ </div>
+ <p class="text-muted small">Browse all clinical donation events, track fulfillment links, and monitor completed donations.</p>
+ </div>
+ <a th:href="@{/admin/donations}" class="btn btn-outline-danger btn-sm mt-2">View Donations →</a>
+ </div>
+ </div>
+ <div class="col-md-4 col-sm-6">
+ <div class="feature-card h-100 d-flex flex-column justify-content-between">
+ <div>
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h6 class="fw-bold mb-0 text-dark">Blood Inventory</h6>
+ <span class="badge bg-success">Active</span>
+ </div>
+ <p class="text-muted small">Access centralized blood unit reserves across participating hospitals for all 8 blood groups.</p>
+ </div>
+ <a th:href="@{/admin/inventory}" class="btn btn-outline-danger btn-sm mt-2">Inspect Inventory →</a>
+ </div>
+ </div>
+ <div class="col-md-4 col-sm-6">
+ <div class="feature-card h-100 d-flex flex-column justify-content-between">
+ <div>
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h6 class="fw-bold mb-0 text-dark">Reports & Analytics</h6>
+ <span class="badge bg-success">Active</span>
+ </div>
+ <p class="text-muted small">Review data-driven analytics covering user demographics, donation rates, and hospital demand.</p>
+ </div>
+ <a th:href="@{/admin/reports}" class="btn btn-outline-danger btn-sm mt-2">Open Reports →</a>
+ </div>
+ </div>
+ </div>
+
+ </main>
+
+ <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+ <div class="container-fluid px-4">
+ DonorNexa &mdash; University CEP Project &copy; 2026
+ </div>
+ </footer>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

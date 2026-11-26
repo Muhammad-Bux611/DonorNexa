@@ -1,0 +1,23 @@
+# Build & Dependency Outputs
+target/
+
+# IDE & Editor Configurations
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Environment & Local Secrets
+.env
+.env.local
+application-local.properties
+donornexa-admin-credentials.txt
+*credentials*.txt
+
+# Runtime Data & Uploads
+uploads/
+logs/
+*.log
+
+# Database Backup Dumps
+database_backup/

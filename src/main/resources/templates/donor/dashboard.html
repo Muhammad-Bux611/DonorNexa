@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Dashboard | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('dashboard')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Donor Dashboard', 'Personal Overview & Eligibility')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Flash Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Dashboard Hero Header -->
+            <div class="dashboard-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <h1 class="h2 fw-bold mb-1 text-white">
+                        Welcome back, <span th:text="${donor.user.fullName}">Donor</span>!
+                    </h1>
+                    <p class="mb-0 text-white-50 small">
+                        Location: <span class="text-white" th:text="${donor.city.name} + ', ' + ${donor.province.name}">Location</span> &nbsp;|&nbsp;
+                        Member since <span class="text-white" th:text="${#temporals.format(donor.createdAt, 'MMMM yyyy')}">2026</span>
+                    </p>
+                </div>
+                <div class="d-flex flex-column align-items-start align-items-sm-end gap-2">
+                    <span class="blood-group-badge" th:text="${donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+                    <div>
+                        <span th:if="${donor.verified}" class="badge bg-success status-pill">Verified Donor</span>
+                        <span th:unless="${donor.verified}" class="badge bg-warning text-dark status-pill">Pending Admin Verification</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Eligibility Callout Box -->
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 fw-bold">
+                            Current Donation Eligibility
+                        </h5>
+                        <span class="badge" th:classappend="${eligibility.statusBadgeClass}" th:text="${eligibility.eligible ? 'Eligible to Donate' : (eligibility.cooldownEligible ? (eligibility.availabilityEligible ? 'Action Required' : 'Status Unavailable') : 'Cooldown Active')}">
+                            Eligible
+                        </span>
+                    </div>
+
+                    <p class="mb-3 text-secondary" th:text="${eligibility.summaryMessage}"></p>
+
+                    <div class="row g-2">
+                        <div class="col-md-6" th:each="msg : ${eligibility.criteriaMessages}">
+                            <div class="p-2 border rounded bg-light small d-flex align-items-center gap-2">
+                                <span>•</span>
+                                <span th:text="${msg}">Criteria explanation</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-end">
+                        <a th:href="@{/donor/profile}" class="btn btn-sm btn-outline-secondary">View Profile Criteria</a>
+                        <a th:href="@{/donor/availability}" class="btn btn-sm btn-dn-outline ms-2">Update Availability</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats Grid -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="text-muted small fw-semibold text-uppercase">Incoming Requests</div>
+                        <div class="stat-number fs-3 mt-1 text-danger" th:text="${summary.incomingRequestsCount}">0</div>
+                        <div class="small text-muted mt-2">
+                            <a th:href="@{/donor/matches}" class="text-decoration-none">Review Matches &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="text-muted small fw-semibold text-uppercase">Accepted & Scheduled</div>
+                        <div class="stat-number fs-3 mt-1 text-success" th:text="${summary.acceptedRequestsCount + summary.scheduledDonationsCount + summary.inProgressDonationsCount}">0</div>
+                        <div class="small text-muted mt-2">
+                            <span th:text="${summary.scheduledDonationsCount}">0</span> scheduled appointment(s)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="text-muted small fw-semibold text-uppercase">Total Donations</div>
+                        <div class="stat-number" th:text="${summary.totalDonationsCount}">0</div>
+                        <div class="small text-muted mt-1">
+                            <span th:text="${summary.completedDonationsCount}">0</span> completed (<span th:text="${summary.totalUnitsDonated}">0</span> units)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="text-muted small fw-semibold text-uppercase">Last Donation</div>
+                        <div class="stat-number fs-4 mt-1" th:text="${donor.lastDonationDate != null ? #temporals.format(donor.lastDonationDate, 'dd MMM yyyy') : 'None'}">None</div>
+                        <div class="small text-muted mt-1">
+                            <span th:if="${donor.lastDonationDate != null}" th:text="${eligibility.daysSinceLastDonation} + ' days ago'"></span>
+                            <span th:if="${donor.lastDonationDate == null}">First donation awaited</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gamification & Lifesaver Milestones Card -->
+            <div class="card shadow-sm border-0 mb-4" style="border-left: 4px solid #c8102e !important;" th:if="${badgeProfile != null}">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-1" style="color: var(--dn-red-dark);">
+                                <i class="bi bi-award-fill me-2 text-danger"></i>Lifesaver Recognition & Milestones
+                            </h5>
+                            <p class="text-muted small mb-0">Every donation saves lives across accredited hospitals in Pakistan.</p>
+                        </div>
+                        <div>
+                            <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 fs-6" th:if="${badgeProfile.highestBadge != null}">
+                                Current Honor: <strong th:text="${badgeProfile.highestBadge.displayName}">Bronze Lifesaver</strong>
+                            </span>
+                            <span class="badge bg-light text-muted border px-3 py-2 fs-6" th:if="${badgeProfile.highestBadge == null}">
+                                Ready to Earn 1st Badge
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-7">
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div class="p-2 border rounded text-center" style="min-width: 120px;"
+                                     th:classappend="${badgeProfile.totalCompletedDonations >= 1} ? 'bg-white shadow-sm border-danger' : 'bg-light text-muted opacity-50'">
+                                    <div class="fs-4 text-warning">&#9733;</div>
+                                    <div class="fw-bold small">Bronze Lifesaver</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">1 Donation</div>
+                                </div>
+                                <div class="p-2 border rounded text-center" style="min-width: 120px;"
+                                     th:classappend="${badgeProfile.totalCompletedDonations >= 5} ? 'bg-white shadow-sm border-danger' : 'bg-light text-muted opacity-50'">
+                                    <div class="fs-4 text-secondary">&#9670;</div>
+                                    <div class="fw-bold small">Silver Guardian</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">5 Donations</div>
+                                </div>
+                                <div class="p-2 border rounded text-center" style="min-width: 120px;"
+                                     th:classappend="${badgeProfile.totalCompletedDonations >= 10} ? 'bg-white shadow-sm border-danger' : 'bg-light text-muted opacity-50'">
+                                    <div class="fs-4 text-warning">&#9819;</div>
+                                    <div class="fw-bold small">Gold Hero</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">10 Donations</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5" th:if="${badgeProfile.nextBadge != null}">
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span>Progress to <strong th:text="${badgeProfile.nextBadge.displayName}">Silver Guardian</strong>:</span>
+                                <span><strong th:text="${badgeProfile.totalCompletedDonations}">0</strong> / <span th:text="${badgeProfile.nextBadgeTarget}">5</span></span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-danger" role="progressbar" th:style="'width: ' + ${badgeProfile.progressToNextBadgePercent} + '%;'"
+                                     th:aria-valuenow="${badgeProfile.progressToNextBadgePercent}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;" th:text="${badgeProfile.nextBadge.description}"></small>
+                        </div>
+                        <div class="col-md-5" th:if="${badgeProfile.nextBadge == null}">
+                            <div class="alert alert-success py-2 px-3 mb-0 small">
+                                &#127881; Maximum Honor Achieved! Thank you for being a Gold Hero and constant lifesaver.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Cards -->
+            <h5 class="fw-bold mb-3">Donor Portal Management</h5>
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card d-flex flex-column justify-content-between h-100">
+                        <div>
+                            <h5>My Profile</h5>
+                            <p class="text-muted small">Review your registered personal info, blood group, contact details, and medical criteria.</p>
+                        </div>
+                        <a th:href="@{/donor/profile}" class="btn btn-dn-outline btn-sm w-100 mt-2">View Profile</a>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card d-flex flex-column justify-content-between h-100">
+                        <div>
+                            <h5>Edit Details</h5>
+                            <p class="text-muted small">Update your phone number, body weight, province, city, and address as they change.</p>
+                        </div>
+                        <a th:href="@{/donor/profile/edit}" class="btn btn-dn-outline btn-sm w-100 mt-2">Edit Profile</a>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card d-flex flex-column justify-content-between h-100">
+                        <div>
+                            <h5>Availability</h5>
+                            <p class="text-muted small">Update whether you are ready to receive donation calls or temporarily stepping back.</p>
+                        </div>
+                        <a th:href="@{/donor/availability}" class="btn btn-dn-outline btn-sm w-100 mt-2">Manage Availability</a>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card d-flex flex-column justify-content-between h-100">
+                        <div>
+                            <h5>Donation Log</h5>
+                            <p class="text-muted small">View your complete recorded donation history, units, dates, and receiving hospitals.</p>
+                        </div>
+                        <a th:href="@{/donor/donations}" class="btn btn-dn-outline btn-sm w-100 mt-2">View Donation History</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Scheduled Appointments & Coordination -->
+            <div th:if="${summary.upcomingAppointments != null and not #lists.isEmpty(summary.upcomingAppointments)}" class="card shadow-sm border-0 mb-4 border-start border-4 border-primary">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-calendar-event me-2"></i>Active Donation Appointments</h5>
+                        <small class="text-muted">You have accepted blood coordination assignments with upcoming hospital schedules</small>
+                    </div>
+                    <a th:href="@{/donor/matches}" class="btn btn-sm btn-outline-primary">View All Matches</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Hospital</th>
+                                    <th>Blood Group Required</th>
+                                    <th>Appointment Time</th>
+                                    <th>Instructions / Notes</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="m : ${summary.upcomingAppointments}">
+                                    <td class="fw-semibold" th:text="${m.bloodRequest.hospital.hospitalName}">Hospital</td>
+                                    <td>
+                                        <span class="badge bg-danger" th:text="${m.bloodRequest.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+                                        <span class="badge bg-secondary ms-1" th:text="${m.bloodRequest.urgency}">HIGH</span>
+                                    </td>
+                                    <td class="text-primary fw-bold" th:text="${m.scheduledAppointmentTime != null ? #temporals.format(m.scheduledAppointmentTime, 'dd MMM yyyy, hh:mm a') : 'Awaiting Hospital Schedule'}">Time</td>
+                                    <td class="small text-muted" th:text="${m.appointmentNotes != null and not #strings.isEmpty(m.appointmentNotes) ? m.appointmentNotes : 'Contact hospital in chat'}">Notes</td>
+                                    <td>
+                                        <span th:if="${m.matchStatus.name() == 'ACCEPTED'}" class="badge bg-info text-dark">Accepted</span>
+                                        <span th:if="${m.matchStatus.name() == 'SCHEDULED'}" class="badge bg-primary">Scheduled</span>
+                                        <span th:if="${m.matchStatus.name() == 'ARRIVED'}" class="badge bg-warning text-dark">Arrived at Hospital</span>
+                                        <span th:if="${m.matchStatus.name() == 'DONATION_IN_PROGRESS'}" class="badge bg-warning text-dark">Donation In Progress</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/donor/messages}" class="btn btn-sm btn-dn-outline">Hospital Chat</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Donations Table -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Recent Donations</h5>
+                    <a th:href="@{/donor/donations}" class="btn btn-sm btn-link text-decoration-none">View All &rarr;</a>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(recentDonations)}" class="p-4 text-center text-muted">
+                        <p class="mb-1 fs-5">No donation records yet</p>
+                        <p class="small mb-0">When hospitals record completed donations with you, they will appear here automatically.</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(recentDonations)}" class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Hospital</th>
+                                    <th>Units</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="d : ${recentDonations}">
+                                    <td th:text="${#temporals.format(d.donationDate, 'dd MMM yyyy, hh:mm a')}">01 Jan 2026</td>
+                                    <td class="fw-semibold" th:text="${d.hospital.hospitalName}">Hospital Name</td>
+                                    <td th:text="${d.unitsDonated} + ' Unit(s)'">1 Unit</td>
+                                    <td>
+                                        <span th:if="${d.donationStatus.name() == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                        <span th:if="${d.donationStatus.name() == 'SCHEDULED'}" class="badge bg-info text-dark">Scheduled</span>
+                                        <span th:if="${d.donationStatus.name() == 'CANCELLED'}" class="badge bg-secondary">Cancelled</span>
+                                        <span th:if="${d.donationStatus.name() == 'REJECTED'}" class="badge bg-danger">Rejected</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Notifications Stream -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Recent Notifications</h5>
+                    <a th:href="@{/notifications}" class="btn btn-sm btn-link text-decoration-none">Notification Inbox &rarr;</a>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(summary.recentNotifications)}" class="p-4 text-center text-muted">
+                        <p class="mb-0 small">No notifications yet. You will be notified when matching blood requests are raised.</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(summary.recentNotifications)}" class="list-group list-group-flush">
+                        <div th:each="n : ${summary.recentNotifications}" class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold text-dark" th:text="${n.title}">Notification Title</h6>
+                                <p class="mb-0 small text-muted" th:text="${n.message}">Notification message</p>
+                            </div>
+                            <small class="text-muted text-nowrap ms-3" th:text="${n.createdAt != null ? #temporals.format(n.createdAt, 'dd MMM, HH:mm') : ''}">Date</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; Connecting Donors. Bridging Lives. Saving Hope. &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Details | DonorNexa Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('donations')}"></div>
+    </div>
+    <div th:replace="~{fragments/header :: mobileSidebar('donations')}"></div>
+
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Donation Record', 'Clinical Event Inspection')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <!-- Header & Navigation -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <div class="small text-muted mb-1">
+                        <a th:href="@{/admin/donations}" class="text-decoration-none">← Back to Donation Records</a>
+                    </div>
+                    <h2 class="fw-bold mb-1" th:text="'Donation Event #' + ${donation.id}">Donation #1</h2>
+                    <p class="text-muted mb-0">
+                        Donor: <strong class="text-dark" th:text="${donation.donor.user.fullName}">Donor Name</strong> &bull;
+                        Recipient: <span class="text-dark" th:text="${donation.hospital.hospitalName}">Hospital Name</span>
+                    </p>
+                </div>
+                <div>
+                    <span class="badge fs-6"
+                          th:classappend="${donation.donationStatus.name() == 'COMPLETED'} ? 'bg-success' : (${donation.donationStatus.name() == 'SCHEDULED'} ? 'bg-primary' : 'bg-secondary')"
+                          th:text="'Status: ' + ${donation.donationStatus}">
+                        Status: COMPLETED
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="profile-card mb-4">
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-3">Donation Event Specifications</h5>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Donation Record ID</label>
+                                <div class="fw-semibold text-dark" th:text="'#' + ${donation.id}">#1</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Units Donated</label>
+                                <div class="fw-bold text-danger fs-5" th:text="${donation.unitsDonated} + ' Unit(s)'">1 Unit(s)</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Donation Date</label>
+                                <div class="fw-semibold text-dark"
+                                     th:text="${donation.donationDate != null ? #temporals.format(donation.donationDate, 'dd MMM yyyy') : 'N/A'}">
+                                    01 Jan 2026
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-muted small">Current Standing</label>
+                                <div>
+                                    <span class="badge"
+                                          th:classappend="${donation.donationStatus.name() == 'COMPLETED'} ? 'bg-success' : 'bg-secondary'"
+                                          th:text="${donation.donationStatus}">
+                                        COMPLETED
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-12" th:if="${donation.bloodRequest != null}">
+                                <label class="text-muted small">Fulfilling Blood Request</label>
+                                <div class="p-3 bg-light rounded border">
+                                    <span class="fw-bold text-dark" th:text="'Request #' + ${donation.bloodRequest.id}">Request #1</span> &bull;
+                                    <span th:text="${donation.bloodRequest.bloodGroup}">O+</span> &bull;
+                                    <a th:href="@{/admin/blood-requests/{id}(id=${donation.bloodRequest.id})}" class="text-danger fw-semibold">
+                                        View Linked Request →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="profile-card">
+                        <h5 class="fw-bold text-danger border-bottom pb-2 mb-3">Participant Profiles</h5>
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <h6 class="fw-bold text-dark mb-1">Volunteer Donor</h6>
+                            <div class="text-dark fw-semibold" th:text="${donation.donor.user.fullName}">Donor Name</div>
+                            <small class="text-muted" th:text="'Blood Group: ' + ${donation.donor.bloodGroup} + ' • ' + ${donation.donor.user.email}">O+ • donor@example.com</small>
+                            <div class="mt-2">
+                                <a th:href="@{/admin/donors/{id}(id=${donation.donor.id})}" class="btn btn-outline-danger btn-sm">Inspect Donor Profile →</a>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-light rounded border">
+                            <h6 class="fw-bold text-dark mb-1">Hospital Facility</h6>
+                            <div class="text-dark fw-semibold" th:text="${donation.hospital.hospitalName}">Hospital Name</div>
+                            <small class="text-muted" th:text="'Reg: ' + ${donation.hospital.registrationNumber} + ' • ' + ${donation.hospital.contactNumber}">HOSP-001</small>
+                            <div class="mt-2">
+                                <a th:href="@{/admin/hospitals/{id}(id=${donation.hospital.id})}" class="btn btn-outline-danger btn-sm">Inspect Hospital Profile →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa &mdash; University CEP Project &copy; 2026
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

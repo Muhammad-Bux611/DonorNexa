@@ -1,0 +1,10 @@
+.git
+.idea
+.vscode
+target/
+*.log
+logs/
+*.pdf
+generate_*.js
+scan_lines.js
+DonorNexa_*.html

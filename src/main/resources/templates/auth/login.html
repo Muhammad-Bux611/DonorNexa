@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark dn-navbar">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center">
+        <a class="navbar-brand fw-bold" th:href="@{/}">DonorNexa</a>
+        <div class="ms-auto d-flex flex-wrap gap-1 gap-sm-2">
+            <a class="btn btn-outline-light btn-sm" th:href="@{/register/donor}">Register as Donor</a>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/register/hospital}">Register Hospital</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main -->
+<main class="container py-4 py-sm-5 flex-grow-1 d-flex align-items-center justify-content-center">
+    <div class="auth-card w-100">
+
+        <h1 class="auth-title h3 text-center mb-1">Welcome Back</h1>
+        <p class="auth-subtitle text-center mb-3">Sign in to your DonorNexa account</p>
+
+        <!-- Role Portal Switcher Pills -->
+        <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
+            <a th:href="@{/login/donor}" class="btn btn-outline-danger btn-sm active fw-semibold">Donor Login</a>
+            <a th:href="@{/login/hospital}" class="btn btn-outline-primary btn-sm fw-semibold">Hospital Login</a>
+            <a th:href="@{/admin/login}" class="btn btn-outline-dark btn-sm fw-semibold">Admin Portal</a>
+        </div>
+
+        <!-- Success flash (after registration) -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Role Mismatch Error -->
+        <div th:if="${param.error != null && param.error[0] == 'role'}" class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+            <strong>Access Denied:</strong> These credentials do not belong to the selected portal role.
+        </div>
+
+        <!-- Login error -->
+        <div th:if="${param.error != null && param.error[0] != 'role'}" class="alert alert-danger" role="alert">
+            Invalid email or password, or your account has been suspended.
+            Please try again.
+        </div>
+
+        <!-- Logout notice -->
+        <div th:if="${param.loggedOut != null}" class="alert alert-info" role="alert">
+            You have been successfully logged out.
+        </div>
+
+        <!-- Login form — Spring Security processes POST /login -->
+        <form th:action="@{/login}" method="post" novalidate>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="mb-3">
+                <label for="email" class="form-label">
+                    Email address <span class="required-star">*</span>
+                </label>
+                <input type="email" id="email" name="email"
+                       class="form-control"
+                       placeholder="you@example.com"
+                       autocomplete="email"
+                       required>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">
+                    Password <span class="required-star">*</span>
+                </label>
+                <div class="pw-wrapper">
+                    <input type="password" id="password" name="password"
+                           class="form-control pe-5"
+                           placeholder="••••••••"
+                           autocomplete="current-password"
+                           required>
+                    <button type="button" class="pw-toggle btn btn-sm btn-link text-muted text-decoration-none" onclick="togglePw('password', this)"
+                            aria-label="Show/hide password">Show</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-dn-primary w-100 py-2 mb-3">
+                Sign In
+            </button>
+        </form>
+
+        <hr class="my-3">
+        <p class="text-center text-muted small mb-0">
+            Don't have an account?
+            <a th:href="@{/register}" class="text-decoration-none" style="color:var(--dn-red);">Register here</a>
+        </p>
+    </div>
+</main>
+
+<footer class="text-center py-3 text-secondary small">
+    DonorNexa — University CEP Project
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePw(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    const isHidden = inp.type === 'password';
+    inp.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? 'Hide' : 'Show';
+}
+</script>
+</body>
+</html>

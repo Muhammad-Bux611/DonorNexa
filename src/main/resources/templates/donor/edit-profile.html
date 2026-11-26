@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile | DonorNexa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dn-dashboard-wrapper">
+    <!-- Desktop Persistent Sidebar -->
+    <div class="d-none d-lg-block">
+        <div th:replace="~{fragments/sidebar :: sidebar('edit-profile')}"></div>
+    </div>
+    <!-- Mobile Offcanvas Sidebar Drawer -->
+    <div th:replace="~{fragments/header :: mobileSidebar('edit-profile')}"></div>
+
+    <!-- Main Content -->
+    <div class="dn-main-content">
+        <div th:replace="~{fragments/header :: topbar('Edit Profile', 'Update Permitted Donor Details')}"></div>
+
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+
+            <div class="auth-card auth-card-wide mx-auto my-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="auth-title h3 mb-1">Edit Donor Profile</h2>
+                        <p class="auth-subtitle mb-0">Update your contact details, weight, and residential location.</p>
+                    </div>
+                    <span class="blood-group-badge" th:text="${donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span>
+                </div>
+
+                <!-- Error banner -->
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <form th:action="@{/donor/profile/edit}" th:object="${profileForm}" method="post" enctype="multipart/form-data" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <!-- Profile Photo Upload -->
+                    <div class="mb-4 p-3 bg-light rounded border">
+                        <label class="form-label fw-semibold" for="photoFile">Profile Photo (Optional)</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <img th:if="${donor.photo != null and !donor.photo.isBlank()}" th:src="@{'/uploads/photos/' + ${donor.photo}}" alt="Current Photo" class="rounded-circle border border-2 border-danger shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">
+                            <input type="file" id="photoFile" name="photoFile" class="form-control" accept="image/jpeg,image/png">
+                        </div>
+                        <div class="form-text small text-muted mt-1">Accepted formats: JPG, PNG. Maximum file size: 2MB. Magic bytes verified.</div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <h6 class="text-uppercase text-muted fw-semibold small mb-3 mt-3">Editable Personal Details</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="fullName">Full Name <span class="required-star">*</span></label>
+                        <input type="text" th:field="*{fullName}" id="fullName"
+                               th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'"
+                               class="form-control" placeholder="Your full name">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}"
+                             th:errors="*{fullName}"></div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="phoneNumber">Phone Number <span class="required-star">*</span></label>
+                            <input type="tel" th:field="*{phoneNumber}" id="phoneNumber"
+                                   th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid'"
+                                   class="form-control" placeholder="03XX-XXXXXXX">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('phoneNumber')}"
+                                 th:errors="*{phoneNumber}"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="weight">Body Weight (kg)</label>
+                            <input type="number" step="0.5" th:field="*{weight}" id="weight"
+                                   th:classappend="${#fields.hasErrors('weight')} ? 'is-invalid'"
+                                   class="form-control" placeholder="e.g. 68.5">
+                            <div class="form-text small text-muted">Minimum 50.0 kg required for donation eligibility.</div>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('weight')}"
+                                 th:errors="*{weight}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Location with Cascading Dropdown -->
+                    <h6 class="text-uppercase text-muted fw-semibold small mb-3 mt-4">Location</h6>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="provinceSelect">Province / Territory <span class="required-star">*</span></label>
+                            <select th:field="*{provinceId}" id="provinceSelect"
+                                    th:classappend="${#fields.hasErrors('provinceId')} ? 'is-invalid'"
+                                    class="form-select">
+                                <option value="">Select Province</option>
+                                <option th:each="p : ${provinces}"
+                                        th:value="${p.id}"
+                                        th:text="${p.name}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('provinceId')}"
+                                 th:errors="*{provinceId}"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label mb-0" for="citySelect">City <span class="required-star">*</span></label>
+                                <div id="citySpinner" class="spinner-border spinner-border-sm text-danger d-none" role="status" aria-hidden="true">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <select th:field="*{cityId}" id="citySelect"
+                                    th:classappend="${#fields.hasErrors('cityId')} ? 'is-invalid'"
+                                    th:data-preselected="${profileForm.cityId}"
+                                    class="form-select">
+                                <option value="">Select Province First</option>
+                                <option th:each="c : ${cities}"
+                                        th:value="${c.id}"
+                                        th:text="${c.name}"></option>
+                            </select>
+                            <div id="cityStatusMessage" class="form-text small mt-1 d-none"></div>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('cityId')}"
+                                 th:errors="*{cityId}"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" for="completeAddress">Complete Residential Address</label>
+                        <textarea th:field="*{completeAddress}" id="completeAddress" class="form-control" rows="2"
+                                  placeholder="Street address, apartment, area, landmark..."></textarea>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('completeAddress')}"
+                             th:errors="*{completeAddress}"></div>
+                    </div>
+
+                    <!-- Read-Only Notice -->
+                    <div class="alert alert-light border small text-muted mb-4">
+                        <strong>Protected Fields Notice:</strong> For patient safety and platform integrity,
+                        Blood Group (<strong><span th:text="${donor.bloodGroup.name().replace('_POSITIVE',' +').replace('_NEGATIVE',' -')}">O+</span></strong>),
+                        Date of Birth (<strong><span th:text="${#temporals.format(donor.dateOfBirth, 'dd MMM yyyy')}"></span></strong>),
+                        Email (<strong><span th:text="${donor.user.email}"></span></strong>),
+                        User Role, and Verification Status cannot be changed online.
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 gap-sm-3">
+                        <button type="submit" class="btn btn-dn-primary flex-grow-1 py-2">
+                            Save Profile Changes
+                        </button>
+                        <a th:href="@{/donor/profile}" class="btn btn-outline-secondary py-2 px-4">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-3 bg-white border-top text-center text-muted small">
+            <div class="container-fluid px-4">
+                DonorNexa — University CEP Project &nbsp;|&nbsp; Smart Emergency Blood-Donor Coordination Portal
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Shared dynamic cascading location script -->
+<script th:src="@{/js/location-dropdown.js}"></script>
+</body>
+</html>
